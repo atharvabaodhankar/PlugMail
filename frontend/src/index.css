@@ -1,1 +1,216 @@
+/* ─── globals.css ──────────────────────────────────────────────────── */
+
+/* 1. Tailwind v4 import */
 @import "tailwindcss";
+
+/* 2. Fonts */
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Inter:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap');
+
+/* 3. Source scanning */
+@source "../src/**/*.{js,jsx,ts,tsx,html}";
+
+/* 4. Dark mode (opt-in, not used by default in PlugMail) */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* 5. Design tokens */
+@theme {
+  /* Fonts */
+  --font-display: "DM Sans", system-ui, sans-serif;
+  --font-body:    "Inter", system-ui, sans-serif;
+  --font-mono:    "DM Mono", "Fira Code", monospace;
+
+  /* Radius */
+  --radius-sm:   0.25rem;
+  --radius:      0.5rem;
+  --radius-lg:   0.75rem;
+  --radius-xl:   1rem;
+  --radius-full: 9999px;
+
+  /* Shadows */
+  --shadow-xs:      0 1px 2px rgba(0,0,0,0.05);
+  --shadow-sm:      0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
+  --shadow:         0 4px 6px rgba(0,0,0,0.07), 0 2px 4px rgba(0,0,0,0.04);
+  --shadow-md:      0 10px 15px rgba(0,0,0,0.07), 0 4px 6px rgba(0,0,0,0.04);
+  --shadow-lg:      0 20px 25px rgba(0,0,0,0.06), 0 10px 10px rgba(0,0,0,0.03);
+  --shadow-primary: 0 4px 14px rgba(10,132,255,0.25);
+
+  /* Brand colors */
+  --color-primary:         #0A84FF;
+  --color-primary-hover:   #0071E3;
+  --color-primary-active:  #005DC0;
+  --color-primary-subtle:  #EBF4FF;
+  --color-primary-border:  #BAD8FF;
+  --color-on-primary:      #FFFFFF;
+
+  /* Surfaces */
+  --color-surface:               #FFFFFF;
+  --color-surface-raised:        #FAFAFA;
+  --color-surface-overlay:       #F3F4F6;
+  --color-surface-sunken:        #F8FAFC;
+  --color-surface-border:        #E5E7EB;
+  --color-surface-border-strong: #D1D5DB;
+
+  /* Text */
+  --color-text-primary:   #111827;
+  --color-text-secondary: #374151;
+  --color-text-tertiary:  #6B7280;
+  --color-text-disabled:  #9CA3AF;
+  --color-text-inverse:   #FFFFFF;
+  --color-text-link:      #0A84FF;
+
+  /* Semantic */
+  --color-success:        #16A34A;
+  --color-success-subtle: #F0FDF4;
+  --color-success-border: #BBF7D0;
+  --color-warning:        #D97706;
+  --color-warning-subtle: #FFFBEB;
+  --color-warning-border: #FDE68A;
+  --color-error:          #DC2626;
+  --color-error-subtle:   #FEF2F2;
+  --color-error-border:   #FECACA;
+
+  /* Code */
+  --color-code-bg:      #F8FAFC;
+  --color-code-border:  #E2E8F0;
+  --color-code-text:    #1E293B;
+  --color-code-comment: #94A3B8;
+
+  /* Animations */
+  --animate-reveal:  fadeSlideUp 300ms ease-out forwards;
+  --animate-fade-in: fadeIn 200ms ease-out forwards;
+}
+
+/* Keyframes */
+@keyframes fadeSlideUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes shimmer {
+  from { background-position: -200% 0; }
+  to   { background-position: 200% 0; }
+}
+
+/* Global resets */
+@layer base {
+  * {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    box-sizing: border-box;
+  }
+  html { background-color: #FFFFFF; }
+  body {
+    font-family: var(--font-body);
+    color: #111827;
+    min-height: 100dvh;
+    margin: 0;
+  }
+  ::selection {
+    background: rgba(10,132,255,0.15);
+    color: #111827;
+  }
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: #D1D5DB; border-radius: 9999px; }
+  ::-webkit-scrollbar-thumb:hover { background: #9CA3AF; }
+  .material-symbols-outlined {
+    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    user-select: none;
+  }
+}
+
+/* Component utilities */
+@layer components {
+  .skeleton {
+    background: linear-gradient(90deg, #F3F4F6 25%, #E5E7EB 50%, #F3F4F6 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s ease-in-out infinite;
+    border-radius: 0.375rem;
+  }
+  .animate-reveal { animation: fadeSlideUp 300ms ease-out forwards; }
+  .stagger-1 { animation-delay: 40ms; }
+  .stagger-2 { animation-delay: 80ms; }
+  .stagger-3 { animation-delay: 120ms; }
+  .stagger-4 { animation-delay: 160ms; }
+  .stagger-5 { animation-delay: 200ms; }
+  .section-label {
+    font-family: var(--font-body);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: #6B7280;
+  }
+  .card {
+    background: #FFFFFF;
+    border: 1px solid #E5E7EB;
+    border-radius: 0.75rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  }
+  .btn-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: #0A84FF;
+    color: #FFFFFF;
+    font-family: var(--font-body);
+    font-size: 0.875rem;
+    font-weight: 500;
+    border: none;
+    border-radius: 0.5rem;
+    box-shadow: 0 4px 14px rgba(10,132,255,0.25);
+    cursor: pointer;
+    transition: all 150ms ease;
+    outline: none;
+  }
+  .btn-primary:hover { background: #0071E3; }
+  .btn-primary:active { background: #005DC0; transform: scale(0.98); }
+  .btn-primary:focus-visible { outline: 2px solid rgba(10,132,255,0.5); outline-offset: 2px; }
+  .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+  .btn-secondary {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: #FFFFFF;
+    color: #374151;
+    font-family: var(--font-body);
+    font-size: 0.875rem;
+    font-weight: 500;
+    border: 1px solid #D1D5DB;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    transition: all 150ms ease;
+    outline: none;
+  }
+  .btn-secondary:hover { background: #F9FAFB; }
+  .btn-secondary:active { background: #F3F4F6; transform: scale(0.98); }
+  .btn-secondary:focus-visible { outline: 2px solid rgba(10,132,255,0.3); outline-offset: 2px; }
+  .btn-secondary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+  .btn-danger {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: #FFFFFF;
+    color: #DC2626;
+    font-family: var(--font-body);
+    font-size: 0.875rem;
+    font-weight: 500;
+    border: 1px solid #FECACA;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    transition: all 150ms ease;
+    outline: none;
+  }
+  .btn-danger:hover { background: #FEF2F2; border-color: #FCA5A5; }
+  .btn-danger:active { background: #FEE2E2; transform: scale(0.98); }
+  .btn-danger:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+}
