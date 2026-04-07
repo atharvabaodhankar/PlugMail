@@ -22,7 +22,9 @@ export default function Sidebar({ onNavigate }) {
     <>
       {/* Logo + wordmark */}
       <div className="h-16 border-b border-[#E5E7EB] px-5 flex items-center gap-2.5 flex-shrink-0">
-        <img src="/logo.png" alt="PlugMail Logo" className="w-7 h-7 object-contain" />
+        <div className="w-7 h-7 rounded bg-gradient-to-br from-[#0A84FF] to-[#5E5CE6] flex items-center justify-center flex-shrink-0">
+          <span className="text-white text-xs font-display font-bold">P</span>
+        </div>
         <span className="font-display font-semibold text-[#111827] text-base">PlugMail</span>
       </div>
 
@@ -53,6 +55,16 @@ export default function Sidebar({ onNavigate }) {
         ))}
       </nav>
 
+      {/* Plan badge */}
+      <div className="px-3 py-4 border-t border-[#E5E7EB] flex-shrink-0">
+        <div className="px-3 py-2.5 rounded-lg bg-white border border-[#E5E7EB]">
+          <p className="section-label">Free Plan</p>
+          <p className="text-xs font-body text-[#374151] mt-0.5">142 / 200 emails today</p>
+          <div className="mt-2 h-1 bg-[#E5E7EB] rounded-full overflow-hidden">
+            <div className="h-full w-[71%] bg-[#0A84FF] rounded-full" />
+          </div>
+        </div>
+      </div>
     </>
   )
 }
