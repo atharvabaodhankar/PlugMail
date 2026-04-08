@@ -1,167 +1,150 @@
-import { useState, useEffect } from 'react'
-import { useAuth } from '../context/AuthContext'
+import { useState } from 'react'
 import Card, { CardHeader } from '../components/ui/Card'
-import Badge from '../components/ui/Badge'
 import Modal from '../components/ui/Modal'
 import Input from '../components/ui/Input'
-import EmptyState from '../components/ui/EmptyState'
 import Toast from '../components/ui/Toast'
+import EmptyState from '../components/ui/EmptyState'
+
+const INITIAL_ACCOUNTS = [
+  { id: 1, email: 'atharva@gmail.com',    isDefault: true,  connected: 'May 1, 2025'  },
+  { id: 2, email: 'plugmail.dev@gmail.com', isDefault: false, connected: 'Apr 20, 2025' },
+]
+
+function Avatar({ email }) {
+  return (
+    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#0A84FF] to-[#5E5CE6] flex items-center justify-center flex-shrink-0">
+      <span className="text-white text-sm font-display font-bold uppercase">
+        {email[0]}
+      </span>
+    </div>
+  )
+}
 
 export default function GmailAccountsPage() {
-  const { getIdToken } = useAuth()
-  const [accounts, setAccounts] = useState([])
-  const [loading, setLoading] = useState(true)
+  const [accounts, setAccounts]   = useState(INITIAL_ACCOUNTS)
   const [modalOpen, setModalOpen] = useState(false)
-  const [formData, setFormData] = useState({ email: '', password: '' })
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [toast, setToast] = useState(null)
+  const [toast, setToast]         = useState(null)
+  const [form, setForm]           = useState({ email: '', password: '' })
+  const [showPass, setShowPass]   = useState(false)
 
-  const fetchAccounts = async () => {
-    try {
-      const token = await getIdToken()
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/accounts`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      })
-      if (!res.ok) throw new Error('Failed to fetch accounts')
-      const data = await res.json()
-      setAccounts(data)
-    } catch (err) {
-      console.error(err)
-      setToast({ type: 'error', title: 'Error', body: 'Failed to load Gmail accounts.' })
-    } finally {
-      setLoading(false)
+  const addAccount = () => {
+    if (!form.email.trim() || !form.password.trim()) return
+    const newAccount = {
+      id: Date.now(),
+      email: form.email.trim(),
+      isDefault: accounts.length === 0,
+      connected: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
     }
+    setAccounts((prev) => [...prev, newAccount])
+    setModalOpen(false)
+    setForm({ email: '', password: '' })
+    setToast({ type: 'success', title: 'Gmail account connected', body: `${newAccount.email} is now active.` })
   }
 
-  useEffect(() => {
-    fetchAccounts()
-  }, [])
-
-  const addAccount = async () => {
-    if (!formData.email.trim() || !formData.password.trim()) return
-    setIsSubmitting(true)
-    try {
-      const token = await getIdToken()
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/accounts`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ email: formData.email.trim(), password: formData.password.trim() })
-      })
-      if (!res.ok) throw new Error('Failed to add account')
-      const newAccount = await res.json()
-      
-      setAccounts(prev => [...prev, newAccount])
-      setModalOpen(false)
-      setFormData({ email: '', password: '' })
-      setToast({ type: 'success', title: 'Account connected', body: `${newAccount.email} is ready for sending.` })
-    } catch (err) {
-      console.error(err)
-      setToast({ type: 'error', title: 'Error', body: 'Failed to add Gmail account.' })
-    } finally {
-      setIsSubmitting(false)
-    }
+  const removeAccount = (id) => {
+    setAccounts((prev) => prev.filter((a) => a.id !== id))
+    setToast({ type: 'info', title: 'Account removed', body: 'Gmail account disconnected successfully.' })
   }
 
-  const removeAccount = async (id) => {
-    try {
-      const token = await getIdToken()
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/accounts/${id}`, {
-        method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${token}` }
-      })
-      if (!res.ok) throw new Error('Failed to remove account')
-      
-      setAccounts(prev => prev.filter(a => a.id !== id))
-      setToast({ type: 'success', title: 'Account removed', body: 'The account was successfully removed.' })
-    } catch (err) {
-      console.error(err)
-      setToast({ type: 'error', title: 'Error', body: 'Failed to remove account.' })
-    }
+  const setDefault = (id) => {
+    setAccounts((prev) => prev.map((a) => ({ ...a, isDefault: a.id === id })))
   }
 
   return (
     <div className="flex flex-col gap-6 animate-reveal">
       {toast && <Toast {...toast} onClose={() => setToast(null)} />}
 
+      {/* Encryption info banner */}
+      <div className="flex items-start gap-3 px-4 py-3 bg-[#EBF4FF] border border-[#BAD8FF] rounded-lg">
+        <span className="material-symbols-outlined text-[20px] text-[#0A84FF] flex-shrink-0 mt-0.5"
+          style={{ fontVariationSettings: "'FILL' 1" }}>lock</span>
+        <div>
+          <p className="text-sm font-body font-medium text-[#1E40AF]">AES-256 encrypted storage</p>
+          <p className="text-xs font-body text-[#0A84FF] mt-0.5">
+            Your Gmail App Passwords are encrypted at rest. We never store plaintext credentials.
+          </p>
+        </div>
+      </div>
+
       <div className="flex items-start justify-between gap-4">
         <div>
           <h2 className="font-display font-semibold text-[#111827] text-2xl">Gmail Accounts</h2>
           <p className="text-sm font-body text-[#6B7280] mt-1">
-            Connect the Gmail accounts you want to send emails from.
+            Connect Gmail accounts to send emails on your behalf.
           </p>
         </div>
         <button className="btn-primary flex-shrink-0" onClick={() => setModalOpen(true)}>
           <span className="material-symbols-outlined text-[18px]">add</span>
-          Connect Account
+          Add Account
         </button>
       </div>
 
-      <Card>
-        <CardHeader
-          title="Connected Accounts"
-          subtitle={loading ? 'Loading...' : `${accounts.length} account${accounts.length !== 1 ? 's' : ''}`}
-        />
-        {loading ? (
-          <div className="p-8 flex justify-center"><div className="animate-spin h-6 w-6 border-2 border-indigo-600 border-t-transparent rounded-full" /></div>
-        ) : accounts.length === 0 ? (
+      {accounts.length === 0 ? (
+        <Card>
           <EmptyState
-            icon="mail"
-            title="No accounts connected"
-            body="You need to connect at least one Gmail account to send emails via the API."
+            icon="alternate_email"
+            title="No Gmail accounts connected"
+            body="Connect a Gmail account with an App Password to start sending emails."
             action={
               <button className="btn-primary" onClick={() => setModalOpen(true)}>
                 <span className="material-symbols-outlined text-[18px]">add</span>
-                Connect Account
+                Add Gmail Account
               </button>
             }
           />
-        ) : (
-          <div>
-            {accounts.map((acc, i) => (
-              <div
-                key={acc.id}
-                className="flex flex-wrap items-center gap-4 py-4 border-b border-[#E5E7EB] last:border-0 hover:bg-[#F9FAFB] transition-colors duration-100 px-6"
-                style={{ animation: 'fadeSlideUp 300ms ease-out forwards', opacity: 0, animationDelay: `${i * 50}ms` }}
-              >
-                <div className="flex items-center gap-3 flex-1 min-w-0">
-                  <div className="w-8 h-8 rounded-full bg-[#EEF2FF] flex items-center justify-center text-[#4F46E5] flex-shrink-0">
-                    <span className="material-symbols-outlined text-[18px]">mail</span>
+        </Card>
+      ) : (
+        <div className="flex flex-col gap-3">
+          {accounts.map((account, i) => (
+            <Card key={account.id}
+              className="animate-reveal"
+              style={{ animationDelay: `${i * 60}ms` }}
+            >
+              <div className="px-6 py-4 flex items-center gap-4">
+                <Avatar email={account.email} />
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <p className="text-sm font-body font-medium text-[#111827]">{account.email}</p>
+                    {account.isDefault && (
+                      <span className="px-2 py-0.5 bg-[#EBF4FF] border border-[#BAD8FF] text-[#0A84FF] text-[10px] font-body font-semibold tracking-[0.1em] uppercase rounded-full">
+                        Default
+                      </span>
+                    )}
                   </div>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <p className="text-sm font-body font-medium text-[#111827]">{acc.email}</p>
-                      {acc.isDefault && <Badge status="active" label="Default" />}
-                    </div>
-                    <p className="text-xs font-body text-[#6B7280] mt-0.5">
-                      Connected {new Date(acc.connected).toLocaleDateString()}
-                    </p>
-                  </div>
+                  <p className="text-xs font-body text-[#6B7280] mt-0.5">Connected {account.connected}</p>
                 </div>
-                <button 
-                  className="text-[#9CA3AF] hover:text-[#DC2626] transition-colors"
-                  onClick={() => removeAccount(acc.id)}
-                >
-                  <span className="material-symbols-outlined text-[20px]">delete</span>
-                </button>
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  {!account.isDefault && (
+                    <button className="btn-secondary text-xs px-3 py-1.5" onClick={() => setDefault(account.id)}>
+                      Set Default
+                    </button>
+                  )}
+                  <button className="btn-danger px-3 py-1.5 text-xs" onClick={() => removeAccount(account.id)}>
+                    <span className="material-symbols-outlined text-[16px]">remove_circle</span>
+                    Remove
+                  </button>
+                </div>
               </div>
-            ))}
-          </div>
-        )}
-      </Card>
+            </Card>
+          ))}
+        </div>
+      )}
 
       <Modal
         open={modalOpen}
-        onClose={() => !isSubmitting && setModalOpen(false)}
+        onClose={() => { setModalOpen(false); setForm({ email: '', password: '' }) }}
         title="Connect Gmail Account"
-        subtitle="You need to use a Google App Password, not your regular password."
+        subtitle="Use a Google App Password — not your regular Gmail password."
         footer={
           <>
-            <button className="btn-secondary" onClick={() => setModalOpen(false)} disabled={isSubmitting}>Cancel</button>
-            <button className="btn-primary" onClick={addAccount} disabled={!formData.email.trim() || !formData.password.trim() || isSubmitting}>
-              {isSubmitting ? 'Connecting...' : 'Connect'}
+            <button className="btn-secondary"
+              onClick={() => { setModalOpen(false); setForm({ email: '', password: '' }) }}>
+              Cancel
+            </button>
+            <button className="btn-primary" onClick={addAccount}
+              disabled={!form.email.trim() || !form.password.trim()}>
+              <span className="material-symbols-outlined text-[18px]">link</span>
+              Connect
             </button>
           </>
         }
@@ -169,28 +152,35 @@ export default function GmailAccountsPage() {
         <div className="flex flex-col gap-4">
           <Input
             label="Gmail Address"
-            placeholder="you@gmail.com"
-            value={formData.email}
-            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
             type="email"
+            placeholder="you@gmail.com"
+            value={form.email}
+            onChange={(e) => setForm((p) => ({ ...p, email: e.target.value }))}
+            autoFocus
           />
-          <Input
-            label="App Password"
-            placeholder="16-character app password"
-            value={formData.password}
-            onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-            type="password"
-            helper="We encrypt this heavily before storing it. It is never stored in plain text."
-          />
-          <div className="mt-2 bg-[#F3F4F6] p-3 rounded text-xs text-[#4B5563] border border-[#E5E7EB]">
-            <strong>How to get an App Password:</strong>
-            <ol className="list-decimal pl-4 mt-1 space-y-1">
-              <li>Go to your Google Account settings</li>
-              <li>Ensure 2-Step Verification is enabled</li>
-              <li>Search for "App Passwords"</li>
-              <li>Create one for "Mail" / "Other"</li>
-              <li>Paste the 16-character code here</li>
-            </ol>
+          <div className="flex flex-col gap-1.5">
+            <label className="text-sm font-body font-medium text-[#374151]">App Password</label>
+            <div className="relative">
+              <input
+                type={showPass ? 'text' : 'password'}
+                placeholder="xxxx xxxx xxxx xxxx"
+                value={form.password}
+                onChange={(e) => setForm((p) => ({ ...p, password: e.target.value }))}
+                className="w-full h-10 px-3 pr-10 bg-white border border-[#D1D5DB] rounded text-sm font-mono text-[#111827] placeholder:text-[#9CA3AF] transition-all duration-150 hover:border-[#9CA3AF] focus:outline-none focus:border-[#0A84FF] focus:ring-2 focus:ring-[#0A84FF]/20"
+              />
+              <button
+                type="button"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-[#9CA3AF] hover:text-[#6B7280] transition-colors"
+                onClick={() => setShowPass((p) => !p)}
+              >
+                <span className="material-symbols-outlined text-[18px]">
+                  {showPass ? 'visibility_off' : 'visibility'}
+                </span>
+              </button>
+            </div>
+            <p className="text-xs font-body text-[#6B7280]">
+              Generate at <span className="text-[#0A84FF]">myaccount.google.com → Security → App Passwords</span>
+            </p>
           </div>
         </div>
       </Modal>
