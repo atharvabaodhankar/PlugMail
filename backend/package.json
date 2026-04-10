@@ -4,8 +4,6 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "nodemon index.js",
-    "start": "node index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -18,12 +16,7 @@
     "express": "^5.2.1",
     "express-rate-limit": "^8.5.1",
     "firebase-admin": "^13.9.0",
-    "handlebars": "^4.7.9",
     "helmet": "^8.1.0",
-    "nodemailer": "^8.0.7",
-    "uuid": "^14.0.0"
-  },
-  "devDependencies": {
-    "nodemon": "^3.1.14"
+    "nodemailer": "^8.0.7"
   }
 }
