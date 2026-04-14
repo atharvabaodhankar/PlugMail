@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom'
+import { useAuth } from '../context/AuthContext'
 import CodeBlock from '../components/ui/CodeBlock'
 
 const SAMPLE_CODE = `const response = await fetch("https://api.plugmail.dev/api/send", {
@@ -9,19 +9,15 @@ const SAMPLE_CODE = `const response = await fetch("https://api.plugmail.dev/api/
     template: "welcome",
     variables: { name: "Atharva" }
   })
-});
-
-const data = await response.json();
-// { success: true, messageId: "msg_01..." }`
+});`
 
 export default function LoginPage() {
-  const navigate = useNavigate()
+  const { signInWithGoogle, error } = useAuth()
 
   return (
     <div className="min-h-screen bg-white flex">
       {/* Left panel — branding */}
       <div className="hidden lg:flex w-1/2 flex-col bg-[#FAFAFA] border-r border-[#E5E7EB] p-12">
-        {/* Wordmark */}
         <div className="flex items-center gap-2.5">
           <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#0A84FF] to-[#5E5CE6] flex items-center justify-center">
             <span className="text-white text-sm font-display font-bold">P</span>
@@ -29,7 +25,6 @@ export default function LoginPage() {
           <span className="font-display font-semibold text-[#111827] text-lg">PlugMail</span>
         </div>
 
-        {/* Hero copy */}
         <div className="mt-auto mb-auto pt-20">
           <h1 className="font-display font-bold text-[#111827] text-4xl leading-tight mb-4">
             Email infrastructure<br />
@@ -39,13 +34,12 @@ export default function LoginPage() {
             Send transactional emails via REST API using your own Gmail credentials. No SMTP setup. No complexity.
           </p>
 
-          {/* Feature bullets */}
           <ul className="mt-8 flex flex-col gap-3">
             {[
-              { icon: 'vpn_key', text: 'API key management in seconds' },
-              { icon: 'description', text: 'Reusable email templates with variables' },
-              { icon: 'bar_chart', text: 'Analytics and delivery tracking' },
-              { icon: 'science', text: 'Live testing playground' },
+              { icon: 'vpn_key',    text: 'API key management in seconds' },
+              { icon: 'description',text: 'Reusable email templates with variables' },
+              { icon: 'bar_chart',  text: 'Analytics and delivery tracking' },
+              { icon: 'science',    text: 'Live testing playground' },
             ].map((item) => (
               <li key={item.icon} className="flex items-center gap-3 text-sm font-body text-[#374151]">
                 <div className="w-7 h-7 rounded-md bg-[#EBF4FF] flex items-center justify-center flex-shrink-0">
@@ -60,7 +54,6 @@ export default function LoginPage() {
           </ul>
         </div>
 
-        {/* Code preview */}
         <div className="mt-auto">
           <CodeBlock lang="Node.js" code={SAMPLE_CODE} />
         </div>
@@ -68,7 +61,6 @@ export default function LoginPage() {
 
       {/* Right panel — sign in */}
       <div className="flex-1 flex flex-col items-center justify-center p-8">
-        {/* Mobile wordmark */}
         <div className="lg:hidden flex items-center gap-2.5 mb-10">
           <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#0A84FF] to-[#5E5CE6] flex items-center justify-center">
             <span className="text-white text-sm font-display font-bold">P</span>
@@ -84,9 +76,18 @@ export default function LoginPage() {
             Connect your Google account to get started.
           </p>
 
+          {/* Error banner */}
+          {error && (
+            <div className="mb-4 flex items-start gap-3 px-4 py-3 bg-[#FEF2F2] border border-[#FECACA] rounded-lg">
+              <span className="material-symbols-outlined text-[18px] text-[#DC2626] flex-shrink-0"
+                style={{ fontVariationSettings: "'FILL' 1" }}>error</span>
+              <p className="text-sm font-body text-[#B91C1C]">{error}</p>
+            </div>
+          )}
+
           {/* Google sign-in button */}
           <button
-            onClick={() => navigate('/dashboard')}
+            onClick={signInWithGoogle}
             className="w-full flex items-center justify-center gap-3 h-11 px-4
                        bg-white border border-[#D1D5DB] rounded
                        text-sm font-body font-medium text-[#374151]
@@ -95,7 +96,6 @@ export default function LoginPage() {
                        focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0A84FF]/30
                        transition-all duration-150 shadow-[0_1px_3px_rgba(0,0,0,0.08)]"
           >
-            {/* Google G icon (SVG) */}
             <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
               <path d="M17.64 9.2045c0-.6381-.0573-1.2518-.1636-1.8409H9v3.4814h4.8436c-.2086 1.125-.8427 2.0782-1.7959 2.7164v2.2581h2.9082c1.7018-1.5668 2.6841-3.874 2.6841-6.615z" fill="#4285F4"/>
               <path d="M9 18c2.43 0 4.4673-.806 5.9564-2.1805l-2.9082-2.2581c-.8059.54-1.8368.859-3.0482.859-2.344 0-4.3282-1.5836-5.036-3.7104H.9574v2.3318C2.4382 15.9832 5.4818 18 9 18z" fill="#34A853"/>
