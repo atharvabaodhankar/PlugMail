@@ -20,16 +20,7 @@ export function AuthProvider({ children }) {
   const signInWithGoogle = async () => {
     setError(null)
     try {
-      const result = await signInWithPopup(auth, provider)
-      // Sync user to backend
-      const token = await result.user.getIdToken()
-      await fetch(`${import.meta.env.VITE_API_URL}/user/sync`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      }).catch(err => console.error('Failed to sync user with backend:', err))
+      await signInWithPopup(auth, provider)
     } catch (err) {
       // User closed popup — not really an error
       if (err.code !== 'auth/popup-closed-by-user' && err.code !== 'auth/cancelled-popup-request') {
