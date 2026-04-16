@@ -2,10 +2,8 @@ const express = require('express');
 const Handlebars = require('handlebars');
 const { db } = require('../firebase');
 const { requireApiKey } = require('../middleware/apiKeyAuth');
-const { requireAuth } = require('../middleware/auth');
 const { decrypt } = require('../utils/crypto');
 const { createTransporter, sendMail } = require('../utils/mailer');
-const { sendSystemNotification } = require('../utils/notifications');
 
 const router = express.Router();
 
@@ -14,18 +12,6 @@ const router = express.Router();
  * Core sending infrastructure. Protected by x-api-key header.
  */
 router.post('/', requireApiKey, async (req, res) => {
-  return handleSend(req, res, req.userId);
-});
-
-/**
- * POST /api/send/test
- * Internal playground testing. Protected by Firebase Auth (JWT).
- */
-router.post('/test', requireAuth, async (req, res) => {
-  return handleSend(req, res, req.user.uid);
-});
-
-async function handleSend(req, res, userId) {
   try {
     const { to, template: templateName, variables, subject: overrideSubject } = req.body;
     
@@ -33,6 +19,8 @@ async function handleSend(req, res, userId) {
     if (!to || !templateName) {
       return res.status(400).json({ error: 'Missing required fields: to, template' });
     }
+
+    const userId = req.userId;
 
     // 2. Fetch User's Template
     const templateSnapshot = await db.collection('templates')
@@ -94,29 +82,12 @@ async function handleSend(req, res, userId) {
     if (result.success) {
       res.json({ success: true, messageId: result.messageId });
     } else {
-      // Send Failure Notification (if enabled)
-      try {
-        const userDoc = await db.collection('users').doc(userId).get();
-        const userData = userDoc.data();
-        if (userData?.settings?.notifications?.emailOnFailure !== false) {
-          await sendSystemNotification(
-            userData.email,
-            'Delivery Failure Alert',
-            `<p>An email attempt to <strong>${to}</strong> using template <strong>"${templateName}"</strong> just failed.</p>
-             <p style="color: #EF4444;"><strong>Error:</strong> ${result.error || 'Unknown Error'}</p>
-             <p>Check your logs in the PlugMail dashboard for more details.</p>`
-          );
-        }
-      } catch (notifyError) {
-        console.error('Failed to send failure notification:', notifyError);
-      }
-
       res.status(500).json({ success: false, error: 'Email delivery failed', details: result.error });
     }
   } catch (error) {
     console.error('Send API Error:', error);
     res.status(500).json({ error: 'Internal Server Error' });
   }
-}
+});
 
 module.exports = router;
