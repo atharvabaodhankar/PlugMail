@@ -24,6 +24,14 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok', message: 'PlugMail API is running' });
 });
 
+// API Routes
+app.use('/api/user', require('./src/routes/user'));
+app.use('/api/keys', require('./src/routes/keys'));
+app.use('/api/accounts', require('./src/routes/accounts'));
+app.use('/api/templates', require('./src/routes/templates'));
+app.use('/api/analytics', require('./src/routes/analytics'));
+app.use('/api/send', require('./src/routes/send'));
+
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
