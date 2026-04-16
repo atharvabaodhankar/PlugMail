@@ -62,49 +62,6 @@ router.post('/', requireAuth, async (req, res) => {
 });
 
 /**
- * PUT /api/templates/:id
- */
-router.put('/:id', requireAuth, async (req, res) => {
-  try {
-    const { id } = req.params;
-    const templateRef = db.collection('templates').doc(id);
-    const doc = await templateRef.get();
-
-    if (!doc.exists || doc.data().userId !== req.user.uid) {
-      return res.status(404).json({ error: 'Template not found' });
-    }
-
-    const { name, category, subject, html } = req.body;
-    if (!name) return res.status(400).json({ error: 'Template name is required' });
-
-    // Extract variables
-    const varRegex = /\{\{([^}]+)\}\}/g;
-    const matches = [...(html || '').matchAll(varRegex), ...(subject || '').matchAll(varRegex)];
-    const vars = [...new Set(matches.map(m => m[1].trim()))];
-
-    const updates = {
-      name,
-      category: category || 'General',
-      subject: subject || '',
-      html: html || '',
-      vars,
-      updatedAt: new Date().toISOString()
-    };
-
-    await templateRef.update(updates);
-
-    res.json({
-      id,
-      ...doc.data(),
-      ...updates
-    });
-  } catch (error) {
-    console.error('Error updating template:', error);
-    res.status(500).json({ error: 'Failed to update template' });
-  }
-});
-
-/**
  * DELETE /api/templates/:id
  */
 router.delete('/:id', requireAuth, async (req, res) => {
