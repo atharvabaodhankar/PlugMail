@@ -3,8 +3,6 @@ const crypto = require('crypto');
 const { v4: uuidv4 } = require('uuid');
 const { db } = require('../firebase');
 const { requireAuth } = require('../middleware/auth');
-const { encrypt, decrypt } = require('../utils/crypto');
-const { sendSystemNotification } = require('../utils/notifications');
 
 const router = express.Router();
 
@@ -21,14 +19,10 @@ router.get('/', requireAuth, async (req, res) => {
 
     const keys = snapshot.docs.map(doc => {
       const data = doc.data();
-      // Decrypt the key so it's usable in the dashboard (Playground/Copy)
-      const fullKey = data.encryptedKey ? decrypt(data.encryptedKey) : null;
-      
       return {
         id: doc.id,
         name: data.name,
-        key: fullKey,
-        maskedKey: data.maskedKey,
+        maskedKey: data.maskedKey, // e.g. pk_live_abcd••••••••wxyz
         active: data.active,
         createdAt: data.createdAt,
       };
@@ -53,11 +47,8 @@ router.post('/', requireAuth, async (req, res) => {
     // Generate raw key: pk_live_ + 32 random hex chars
     const rawKey = 'pk_live_' + crypto.randomBytes(16).toString('hex');
     
-    // Hash key for lookup (fast authentication)
+    // Hash key for secure storage
     const hashedKey = crypto.createHash('sha256').update(rawKey).digest('hex');
-    
-    // Encrypt key for secure retrieval (Playground/Copy)
-    const encryptedKey = encrypt(rawKey);
     
     // Create masked version for UI
     const maskedKey = rawKey.slice(0, 12) + '••••••••' + rawKey.slice(-4);
@@ -66,30 +57,12 @@ router.post('/', requireAuth, async (req, res) => {
       userId: req.user.uid,
       name,
       hashedKey,
-      encryptedKey,
       maskedKey,
       active: true,
       createdAt: new Date().toISOString()
     };
 
     const docRef = await db.collection('apiKeys').add(newKey);
-
-    // Send Security Notification (if enabled)
-    try {
-      const userDoc = await db.collection('users').doc(req.user.uid).get();
-      const userData = userDoc.data();
-      if (userData?.settings?.notifications?.securityAlerts !== false) {
-        await sendSystemNotification(
-          req.user.email,
-          'Security Alert: New API Key Created',
-          `<p>A new API key named <strong>"${name}"</strong> was just created for your PlugMail account.</p>
-           <p><strong>Masked Key:</strong> ${maskedKey}</p>
-           <p>If you did not perform this action, please revoke the key immediately from your dashboard settings.</p>`
-        );
-      }
-    } catch (notifyError) {
-      console.error('Failed to send key creation notification:', notifyError);
-    }
 
     // ONLY return the raw key once upon creation
     res.json({
