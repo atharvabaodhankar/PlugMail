@@ -2,7 +2,6 @@ const express = require('express');
 const { db } = require('../firebase');
 const { requireAuth } = require('../middleware/auth');
 const { encrypt } = require('../utils/crypto');
-const { sendSystemNotification } = require('../utils/notifications');
 
 const router = express.Router();
 
@@ -63,23 +62,6 @@ router.post('/', requireAuth, async (req, res) => {
     };
 
     const docRef = await db.collection('emailAccounts').add(newAccount);
-
-    // Send Security Notification (if enabled)
-    try {
-      const userDoc = await db.collection('users').doc(req.user.uid).get();
-      const userData = userDoc.data();
-      if (userData?.settings?.notifications?.securityAlerts !== false) {
-        await sendSystemNotification(
-          req.user.email,
-          'Security Alert: New Account Connected',
-          `<p>A new Gmail account (<strong>${email}</strong>) was just connected to your PlugMail dashboard.</p>
-           <p>This account can now be used to send emails via our API.</p>
-           <p>If you did not perform this action, please remove the account immediately from your dashboard.</p>`
-        );
-      }
-    } catch (notifyError) {
-      console.error('Failed to send account connection notification:', notifyError);
-    }
 
     res.json({
       id: docRef.id,
