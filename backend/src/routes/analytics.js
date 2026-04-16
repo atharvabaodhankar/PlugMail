@@ -10,28 +10,16 @@ const router = express.Router();
  */
 router.get('/', requireAuth, async (req, res) => {
   try {
-    const userId = req.user.uid;
-
-    // 1. Fetch all logs for aggregation
     const snapshot = await db.collection('emailLogs')
-      .where('userId', '==', userId)
+      .where('userId', '==', req.user.uid)
       .get();
 
-    // 2. Fetch templates for count and name mapping
-    const templatesSnapshot = await db.collection('templates')
-      .where('userId', '==', userId)
-      .get();
-    
-    const templateCount = templatesSnapshot.size;
-    const templateMap = {};
-    templatesSnapshot.docs.forEach(doc => {
-      templateMap[doc.id] = doc.data().name;
-    });
-
-    // 3. Aggregate statistics
     let totalSent = 0;
     let totalFailed = 0;
     let providerStats = { gmail: 0 };
+    
+    // For a simple daily chart (last 7 days logic would go here)
+    // We'll aggregate by YYYY-MM-DD
     const dailyData = {};
 
     snapshot.docs.forEach(doc => {
@@ -53,35 +41,17 @@ router.get('/', requireAuth, async (req, res) => {
     });
 
     const total = totalSent + totalFailed;
-    const successRate = total > 0 ? ((totalSent / total) * 100).toFixed(1) : "0.0";
+    const successRate = total > 0 ? Math.round((totalSent / total) * 100) : 0;
 
-    // 4. Fetch 5 most recent logs
-    const recentSnapshot = await db.collection('emailLogs')
-      .where('userId', '==', userId)
-      .orderBy('timestamp', 'desc')
-      .limit(5)
-      .get();
-
-    const recentLogs = recentSnapshot.docs.map(doc => {
-      const data = doc.data();
-      return {
-        id: doc.id,
-        ...data,
-        template: templateMap[data.templateId] || 'unknown',
-        time: data.timestamp ? new Date(data.timestamp).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false }).replace(',', ' ·') : 'Unknown'
-      };
-    });
-
+    // Convert dailyData object to sorted array
     const chartData = Object.values(dailyData).sort((a, b) => a.date.localeCompare(b.date));
 
     res.json({
       totalSent,
       totalFailed,
       successRate,
-      templateCount,
       providerStats,
-      chartData,
-      recentLogs
+      chartData
     });
   } catch (error) {
     console.error('Error fetching analytics:', error);
