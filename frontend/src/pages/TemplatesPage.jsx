@@ -1,100 +1,86 @@
-import { useState } from 'react'
-import Card from '../components/ui/Card'
+import { useState, useEffect } from 'react'
+import { useAuth } from '../context/AuthContext'
+import Card, { CardHeader } from '../components/ui/Card'
 import Modal from '../components/ui/Modal'
 import Input from '../components/ui/Input'
-import Toast from '../components/ui/Toast'
 import EmptyState from '../components/ui/EmptyState'
-
-const CATEGORIES = ['All', 'Welcome', 'OTP', 'Password Reset', 'Notification', 'Order', 'Newsletter']
-
-const PREMADE = [
-  { id: 'p1', name: 'Welcome Email',      category: 'Welcome',        subject: 'Welcome to {{appName}}, {{name}}!',    vars: ['name', 'appName'] },
-  { id: 'p2', name: 'OTP Verification',   category: 'OTP',            subject: 'Your verification code: {{otp}}',      vars: ['otp', 'expiry'] },
-  { id: 'p3', name: 'Password Reset',     category: 'Password Reset', subject: 'Reset your {{appName}} password',      vars: ['name', 'link', 'appName'] },
-  { id: 'p4', name: 'Order Confirmation', category: 'Order',          subject: 'Order #{{orderId}} confirmed!',         vars: ['orderId', 'total'] },
-  { id: 'p5', name: 'Security Alert',     category: 'Notification',   subject: 'New login detected on your account',   vars: ['ip', 'location', 'time'] },
-  { id: 'p6', name: 'Newsletter',         category: 'Newsletter',     subject: '{{month}} Update — {{appName}}',       vars: ['month', 'appName'] },
-]
-
-const INITIAL_MY = [
-  { id: 'm1', name: 'Waitlist Invite',    category: 'Welcome',        subject: 'You\'re in, {{name}}! 🎉',              vars: ['name'] },
-]
-
-function TemplateCategoryChip({ label, active, onClick }) {
-  return (
-    <button
-      onClick={onClick}
-      className={`px-3 py-1.5 rounded text-xs font-body font-medium transition-all duration-150 ${
-        active
-          ? 'bg-[#0A84FF] text-white shadow-[0_4px_14px_rgba(10,132,255,0.25)]'
-          : 'bg-white border border-[#D1D5DB] text-[#374151] hover:bg-[#F9FAFB]'
-      }`}
-    >
-      {label}
-    </button>
-  )
-}
-
-function TemplateCard({ tpl, onUse, onEdit, onDelete, showDelete }) {
-  return (
-    <div className="card flex flex-col">
-      <div className="px-5 py-4 border-b border-[#E5E7EB]">
-        <div className="flex items-start justify-between gap-2 mb-2">
-          <span className="inline-flex items-center px-2 py-0.5 bg-[#EBF4FF] border border-[#BAD8FF] text-[#0A84FF] text-[10px] font-body font-semibold tracking-[0.1em] uppercase rounded-full">
-            {tpl.category}
-          </span>
-        </div>
-        <h3 className="font-display font-semibold text-[#111827] text-sm">{tpl.name}</h3>
-        <p className="text-xs font-body text-[#6B7280] mt-1 leading-relaxed truncate">{tpl.subject}</p>
-      </div>
-      <div className="px-5 py-3 flex items-center gap-2 mt-auto">
-        <button className="btn-primary text-xs px-3 py-1.5" onClick={() => onUse(tpl)}>
-          <span className="material-symbols-outlined text-[14px]">send</span>
-          Use
-        </button>
-        <button className="btn-secondary text-xs px-3 py-1.5" onClick={() => onEdit(tpl)}>
-          <span className="material-symbols-outlined text-[14px]">edit</span>
-          Edit
-        </button>
-        {showDelete && (
-          <button className="btn-danger text-xs px-3 py-1.5 ml-auto" onClick={() => onDelete(tpl.id)}>
-            <span className="material-symbols-outlined text-[14px]">delete</span>
-          </button>
-        )}
-      </div>
-    </div>
-  )
-}
+import Toast from '../components/ui/Toast'
 
 export default function TemplatesPage() {
-  const [tab, setTab]           = useState('my')
-  const [catFilter, setCatFilter] = useState('All')
-  const [myTemplates, setMyTemplates] = useState(INITIAL_MY)
-  const [toast, setToast]       = useState(null)
-  const [createOpen, setCreateOpen] = useState(false)
-  const [form, setForm]         = useState({ name: '', subject: '', category: 'Welcome' })
+  const { getIdToken } = useAuth()
+  const [templates, setTemplates] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [modalOpen, setModalOpen] = useState(false)
+  const [toast, setToast] = useState(null)
+  
+  const [formData, setFormData] = useState({
+    name: '',
+    category: '',
+    subject: '',
+    html: ''
+  })
 
-  const filtered = (tab === 'premade' ? PREMADE : myTemplates).filter(
-    (t) => catFilter === 'All' || t.category === catFilter
-  )
-
-  const deleteTemplate = (id) => {
-    setMyTemplates((prev) => prev.filter((t) => t.id !== id))
-    setToast({ type: 'warning', title: 'Template deleted' })
+  const fetchTemplates = async () => {
+    try {
+      const token = await getIdToken()
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/templates`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      })
+      if (!res.ok) throw new Error('Failed to fetch templates')
+      const data = await res.json()
+      setTemplates(data)
+    } catch (err) {
+      console.error(err)
+      setToast({ type: 'error', title: 'Error', body: 'Failed to load templates.' })
+    } finally {
+      setLoading(false)
+    }
   }
 
-  const createTemplate = () => {
-    if (!form.name.trim()) return
-    setMyTemplates((prev) => [...prev, {
-      id: 'm' + Date.now(),
-      name: form.name.trim(),
-      subject: form.subject.trim() || '(no subject)',
-      category: form.category,
-      vars: [],
-    }])
-    setCreateOpen(false)
-    setForm({ name: '', subject: '', category: 'Welcome' })
-    setToast({ type: 'success', title: 'Template created', body: `"${form.name}" is ready to use.` })
+  useEffect(() => {
+    fetchTemplates()
+  }, [])
+
+  const createTemplate = async () => {
+    if (!formData.name.trim()) return
+    try {
+      const token = await getIdToken()
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/templates`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(formData)
+      })
+      if (!res.ok) throw new Error('Failed to create template')
+      const newTemplate = await res.json()
+      
+      setTemplates(prev => [newTemplate, ...prev])
+      setModalOpen(false)
+      setFormData({ name: '', category: '', subject: '', html: '' })
+      setToast({ type: 'success', title: 'Template created', body: `"${newTemplate.name}" was saved successfully.` })
+    } catch (err) {
+      console.error(err)
+      setToast({ type: 'error', title: 'Error', body: 'Failed to save template.' })
+    }
+  }
+
+  const deleteTemplate = async (id) => {
+    try {
+      const token = await getIdToken()
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/templates/${id}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+      })
+      if (!res.ok) throw new Error('Failed to delete template')
+      
+      setTemplates(prev => prev.filter(t => t.id !== id))
+      setToast({ type: 'success', title: 'Template deleted', body: 'The template was successfully removed.' })
+    } catch (err) {
+      console.error(err)
+      setToast({ type: 'error', title: 'Error', body: 'Failed to delete template.' })
+    }
   }
 
   return (
@@ -103,108 +89,95 @@ export default function TemplatesPage() {
 
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h2 className="font-display font-semibold text-[#111827] text-2xl">Templates</h2>
+          <h2 className="font-display font-semibold text-[#111827] text-2xl">Email Templates</h2>
           <p className="text-sm font-body text-[#6B7280] mt-1">
-            Create reusable email templates with dynamic variables.
+            Create reusable HTML email templates with variables.
           </p>
         </div>
-        {tab === 'my' && (
-          <button className="btn-primary flex-shrink-0" onClick={() => setCreateOpen(true)}>
-            <span className="material-symbols-outlined text-[18px]">add</span>
-            New Template
-          </button>
+        <button className="btn-primary flex-shrink-0" onClick={() => setModalOpen(true)}>
+          <span className="material-symbols-outlined text-[18px]">add</span>
+          Create Template
+        </button>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {loading ? (
+          <div className="col-span-full p-8 flex justify-center"><div className="animate-spin h-6 w-6 border-2 border-indigo-600 border-t-transparent rounded-full" /></div>
+        ) : templates.length === 0 ? (
+          <div className="col-span-full">
+            <Card>
+              <EmptyState
+                icon="description"
+                title="No templates yet"
+                body="Design your first HTML email template and use {{variables}} to personalize it."
+                action={
+                  <button className="btn-primary" onClick={() => setModalOpen(true)}>
+                    <span className="material-symbols-outlined text-[18px]">add</span>
+                    Create Template
+                  </button>
+                }
+              />
+            </Card>
+          </div>
+        ) : (
+          templates.map((tpl, i) => (
+            <Card key={tpl.id} className="flex flex-col h-full hover:shadow-md transition-shadow cursor-pointer group" style={{ animation: 'fadeSlideUp 300ms ease-out forwards', opacity: 0, animationDelay: `${i * 50}ms` }}>
+              <div className="p-5 flex-1 flex flex-col">
+                <div className="flex justify-between items-start mb-3">
+                  <span className="text-xs font-semibold uppercase tracking-wider text-[#4F46E5] bg-[#EEF2FF] px-2 py-1 rounded">
+                    {tpl.category || 'General'}
+                  </span>
+                  <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button className="text-[#9CA3AF] hover:text-[#DC2626] p-1 transition-colors" onClick={(e) => { e.stopPropagation(); deleteTemplate(tpl.id); }}>
+                      <span className="material-symbols-outlined text-[18px]">delete</span>
+                    </button>
+                  </div>
+                </div>
+                <h3 className="text-[#111827] font-display font-semibold text-lg leading-tight mb-1">{tpl.name}</h3>
+                <p className="text-[#6B7280] font-body text-sm flex-1 truncate">Subject: {tpl.subject || 'No Subject'}</p>
+                <div className="mt-4 pt-4 border-t border-[#F3F4F6] flex flex-wrap gap-2">
+                  {(tpl.vars || []).length === 0 ? (
+                    <span className="text-xs text-[#9CA3AF] italic">No variables</span>
+                  ) : (
+                    tpl.vars.map(v => (
+                      <span key={v} className="bg-[#F3F4F6] text-[#4B5563] text-xs px-2 py-1 rounded border border-[#E5E7EB] font-mono">
+                        {v}
+                      </span>
+                    ))
+                  )}
+                </div>
+              </div>
+            </Card>
+          ))
         )}
       </div>
 
-      {/* Tabs */}
-      <div className="flex items-center gap-1 border-b border-[#E5E7EB] pb-0">
-        {['my', 'premade'].map((t) => (
-          <button
-            key={t}
-            onClick={() => { setTab(t); setCatFilter('All') }}
-            className={`px-4 py-2.5 text-sm font-body font-medium transition-all duration-150 border-b-2 -mb-px ${
-              tab === t
-                ? 'border-[#0A84FF] text-[#0A84FF]'
-                : 'border-transparent text-[#6B7280] hover:text-[#374151]'
-            }`}
-          >
-            {t === 'my' ? 'My Templates' : 'Premade'}
-          </button>
-        ))}
-      </div>
-
-      {/* Category filter chips */}
-      <div className="flex flex-wrap gap-2">
-        {CATEGORIES.map((cat) => (
-          <TemplateCategoryChip
-            key={cat}
-            label={cat}
-            active={catFilter === cat}
-            onClick={() => setCatFilter(cat)}
-          />
-        ))}
-      </div>
-
-      {/* Grid */}
-      {filtered.length === 0 ? (
-        <EmptyState
-          icon="description"
-          title="No templates found"
-          body={tab === 'my' ? 'Create your first template to get started.' : 'No premade templates in this category.'}
-          action={tab === 'my' && (
-            <button className="btn-primary" onClick={() => setCreateOpen(true)}>
-              <span className="material-symbols-outlined text-[18px]">add</span>
-              New Template
-            </button>
-          )}
-        />
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filtered.map((tpl, i) => (
-            <div key={tpl.id}
-              style={{ animation: 'fadeSlideUp 300ms ease-out forwards', opacity: 0, animationDelay: `${i * 50}ms` }}>
-              <TemplateCard
-                tpl={tpl}
-                showDelete={tab === 'my'}
-                onUse={() => setToast({ type: 'success', title: `Using "${tpl.name}"`, body: 'Go to Playground to send a test.' })}
-                onEdit={() => setToast({ type: 'info', title: 'Template editor', body: 'Full editor coming soon.' })}
-                onDelete={deleteTemplate}
-              />
-            </div>
-          ))}
-        </div>
-      )}
-
       <Modal
-        open={createOpen}
-        onClose={() => { setCreateOpen(false); setForm({ name: '', subject: '', category: 'Welcome' }) }}
-        title="New Template"
-        subtitle="Create a reusable email template."
+        open={modalOpen}
+        onClose={() => setModalOpen(false)}
+        title="Create New Template"
+        subtitle="Use {{variable_name}} to inject data dynamically."
         footer={
           <>
-            <button className="btn-secondary" onClick={() => setCreateOpen(false)}>Cancel</button>
-            <button className="btn-primary" onClick={createTemplate} disabled={!form.name.trim()}>
-              <span className="material-symbols-outlined text-[18px]">add</span>
-              Create
+            <button className="btn-secondary" onClick={() => setModalOpen(false)}>Cancel</button>
+            <button className="btn-primary" onClick={createTemplate} disabled={!formData.name.trim()}>
+              Save Template
             </button>
           </>
         }
       >
         <div className="flex flex-col gap-4">
-          <Input label="Template Name" placeholder="e.g. Welcome Email" value={form.name}
-            onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))} autoFocus />
-          <Input label="Subject Line" placeholder="e.g. Welcome, {{name}}!" value={form.subject}
-            onChange={(e) => setForm((p) => ({ ...p, subject: e.target.value }))}
-            helper="Use {{variable}} for dynamic values." />
+          <Input label="Template Name" placeholder="e.g. Welcome Email" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} autoFocus />
+          <Input label="Category (optional)" placeholder="e.g. Onboarding, Receipts" value={formData.category} onChange={(e) => setFormData({ ...formData, category: e.target.value })} />
+          <Input label="Subject Line" placeholder="Welcome {{name}}!" value={formData.subject} onChange={(e) => setFormData({ ...formData, subject: e.target.value })} />
           <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-body font-medium text-[#374151]">Category</label>
-            <select
-              value={form.category}
-              onChange={(e) => setForm((p) => ({ ...p, category: e.target.value }))}
-              className="w-full h-10 px-3 bg-white border border-[#D1D5DB] rounded text-sm font-body text-[#111827] focus:outline-none focus:border-[#0A84FF] focus:ring-2 focus:ring-[#0A84FF]/20 transition-all duration-150"
-            >
-              {CATEGORIES.filter((c) => c !== 'All').map((c) => <option key={c}>{c}</option>)}
-            </select>
+            <label className="text-sm font-medium text-[#374151]">HTML Body</label>
+            <textarea 
+              className="w-full h-40 resize-y rounded-md border border-[#D1D5DB] bg-white px-3 py-2 text-sm text-[#111827] font-mono focus:border-[#4F46E5] focus:outline-none focus:ring-1 focus:ring-[#4F46E5] placeholder:text-[#9CA3AF] transition-shadow duration-200"
+              placeholder="<h1>Hi {{name}}</h1><p>Welcome to our platform!</p>"
+              value={formData.html}
+              onChange={(e) => setFormData({ ...formData, html: e.target.value })}
+            />
           </div>
         </div>
       </Modal>
