@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../context/AuthContext'
-import Card, { CardHeader } from '../components/ui/Card'
-import Modal from '../components/ui/Modal'
+import Card from '../components/ui/Card'
 import Input from '../components/ui/Input'
 import EmptyState from '../components/ui/EmptyState'
 import Toast from '../components/ui/Toast'
@@ -11,15 +10,11 @@ export default function TemplatesPage() {
   const { getIdToken } = useAuth()
   const [templates, setTemplates] = useState([])
   const [loading, setLoading] = useState(true)
-  const [modalOpen, setModalOpen] = useState(false)
   const [toast, setToast] = useState(null)
   
-  const [formData, setFormData] = useState({
-    name: '',
-    category: '',
-    subject: '',
-    html: ''
-  })
+  // Editor State
+  const [editingTemplate, setEditingTemplate] = useState(null)
+  const [isSaving, setIsSaving] = useState(false)
 
   const fetchTemplates = async () => {
     try {
@@ -41,31 +36,6 @@ export default function TemplatesPage() {
   useEffect(() => {
     fetchTemplates()
   }, [])
-
-  const createTemplate = async () => {
-    if (!formData.name.trim()) return
-    try {
-      const token = await getIdToken()
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/templates`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(formData)
-      })
-      if (!res.ok) throw new Error('Failed to create template')
-      const newTemplate = await res.json()
-      
-      setTemplates(prev => [newTemplate, ...prev])
-      setModalOpen(false)
-      setFormData({ name: '', category: '', subject: '', html: '' })
-      setToast({ type: 'success', title: 'Template created', body: `"${newTemplate.name}" was saved successfully.` })
-    } catch (err) {
-      console.error(err)
-      setToast({ type: 'error', title: 'Error', body: 'Failed to save template.' })
-    }
-  }
 
   const loadDefaultTemplates = async () => {
     setLoading(true);
@@ -96,7 +66,48 @@ export default function TemplatesPage() {
     }
   }
 
-  const deleteTemplate = async (id) => {
+  const saveTemplate = async () => {
+    if (!editingTemplate.name.trim()) return
+    setIsSaving(true)
+    try {
+      const token = await getIdToken()
+      const isNew = !editingTemplate.id
+      const url = isNew 
+        ? `${import.meta.env.VITE_API_URL}/templates` 
+        : `${import.meta.env.VITE_API_URL}/templates/${editingTemplate.id}`
+        
+      const res = await fetch(url, {
+        method: isNew ? 'POST' : 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(editingTemplate)
+      })
+      
+      if (!res.ok) throw new Error('Failed to save template')
+      const savedTpl = await res.json()
+      
+      if (isNew) {
+        setTemplates(prev => [savedTpl, ...prev])
+      } else {
+        setTemplates(prev => prev.map(t => t.id === savedTpl.id ? savedTpl : t))
+      }
+      
+      setToast({ type: 'success', title: 'Saved!', body: `"${savedTpl.name}" was saved successfully.` })
+      setEditingTemplate(null) // Go back to list
+    } catch (err) {
+      console.error(err)
+      setToast({ type: 'error', title: 'Error', body: 'Failed to save template.' })
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+  const deleteTemplate = async (id, e) => {
+    e.stopPropagation()
+    if (!window.confirm("Are you sure you want to delete this template?")) return;
+    
     try {
       const token = await getIdToken()
       const res = await fetch(`${import.meta.env.VITE_API_URL}/templates/${id}`, {
@@ -106,13 +117,128 @@ export default function TemplatesPage() {
       if (!res.ok) throw new Error('Failed to delete template')
       
       setTemplates(prev => prev.filter(t => t.id !== id))
-      setToast({ type: 'success', title: 'Template deleted', body: 'The template was successfully removed.' })
+      setToast({ type: 'success', title: 'Deleted', body: 'The template was removed.' })
     } catch (err) {
       console.error(err)
       setToast({ type: 'error', title: 'Error', body: 'Failed to delete template.' })
     }
   }
 
+  const openEditor = (tpl = null) => {
+    if (tpl) {
+      setEditingTemplate({ ...tpl })
+    } else {
+      setEditingTemplate({ name: '', category: '', subject: '', html: '' })
+    }
+  }
+
+  // ---- RENDER EDITOR VIEW ----
+  if (editingTemplate) {
+    return (
+      <div className="flex flex-col h-[calc(100vh-64px)] -m-8 animate-reveal bg-[#F9FAFB]">
+        {/* Editor Top Bar */}
+        <div className="flex items-center justify-between px-6 py-4 bg-white border-b border-[#E5E7EB] shadow-sm z-10">
+          <div className="flex items-center gap-4">
+            <button 
+              className="p-2 -ml-2 text-[#6B7280] hover:text-[#111827] hover:bg-[#F3F4F6] rounded-md transition-colors"
+              onClick={() => setEditingTemplate(null)}
+            >
+              <span className="material-symbols-outlined">arrow_back</span>
+            </button>
+            <div>
+              <h2 className="font-display font-semibold text-[#111827] text-lg leading-tight">
+                {editingTemplate.id ? 'Edit Template' : 'Create Template'}
+              </h2>
+              <p className="text-xs font-body text-[#6B7280]">
+                {editingTemplate.name || 'Untitled Template'}
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            <button className="btn-secondary" onClick={() => setEditingTemplate(null)}>Cancel</button>
+            <button className="btn-primary" onClick={saveTemplate} disabled={isSaving || !editingTemplate.name.trim()}>
+              {isSaving ? 'Saving...' : 'Save Template'}
+            </button>
+          </div>
+        </div>
+
+        {/* Split Pane Workspace */}
+        <div className="flex flex-1 overflow-hidden">
+          
+          {/* Left Pane: Code & Settings */}
+          <div className="w-1/2 flex flex-col border-r border-[#E5E7EB] bg-white overflow-y-auto">
+            <div className="p-6 flex flex-col gap-5 border-b border-[#F3F4F6]">
+              <div className="grid grid-cols-2 gap-4">
+                <Input 
+                  label="Template Name" 
+                  placeholder="e.g. Welcome Email" 
+                  value={editingTemplate.name} 
+                  onChange={(e) => setEditingTemplate({ ...editingTemplate, name: e.target.value })} 
+                />
+                <Input 
+                  label="Category (optional)" 
+                  placeholder="e.g. Onboarding" 
+                  value={editingTemplate.category} 
+                  onChange={(e) => setEditingTemplate({ ...editingTemplate, category: e.target.value })} 
+                />
+              </div>
+              <Input 
+                label="Subject Line" 
+                placeholder="Welcome {{name}}!" 
+                value={editingTemplate.subject} 
+                onChange={(e) => setEditingTemplate({ ...editingTemplate, subject: e.target.value })} 
+              />
+            </div>
+            
+            <div className="flex-1 flex flex-col p-6">
+              <div className="flex items-center justify-between mb-2">
+                <label className="text-sm font-medium text-[#374151]">HTML Source</label>
+                <span className="text-xs text-[#9CA3AF] bg-[#F3F4F6] px-2 py-1 rounded">Supports {'{{variables}}'}</span>
+              </div>
+              <textarea 
+                className="w-full flex-1 resize-none rounded-md border border-[#D1D5DB] bg-[#1E293B] text-[#E2E8F0] p-4 text-sm font-mono focus:border-[#4F46E5] focus:outline-none focus:ring-1 focus:ring-[#4F46E5] placeholder:text-[#64748B] transition-shadow duration-200"
+                placeholder="<h1>Hi {{name}}</h1><p>Welcome to our platform!</p>"
+                value={editingTemplate.html}
+                onChange={(e) => setEditingTemplate({ ...editingTemplate, html: e.target.value })}
+                spellCheck="false"
+              />
+            </div>
+          </div>
+
+          {/* Right Pane: Live Preview */}
+          <div className="w-1/2 flex flex-col bg-[#F3F4F6]">
+            <div className="flex-shrink-0 px-6 py-4 border-b border-[#E5E7EB] bg-[#F9FAFB] flex items-center justify-between">
+              <span className="text-sm font-medium text-[#374151]">Live Preview</span>
+              <div className="flex gap-1">
+                 <span className="w-3 h-3 rounded-full bg-[#FCA5A5]"></span>
+                 <span className="w-3 h-3 rounded-full bg-[#FCD34D]"></span>
+                 <span className="w-3 h-3 rounded-full bg-[#6EE7B7]"></span>
+              </div>
+            </div>
+            <div className="flex-1 p-6 overflow-hidden">
+              <div className="w-full h-full bg-white rounded-lg shadow-sm border border-[#E5E7EB] overflow-hidden flex flex-col">
+                <div className="border-b border-[#E5E7EB] p-4 bg-[#F9FAFB] flex-shrink-0">
+                  <p className="text-sm font-medium text-[#111827] mb-1">
+                    Subject: <span className="font-normal text-[#6B7280]">{editingTemplate.subject || '...'}</span>
+                  </p>
+                </div>
+                <iframe 
+                  title="Live HTML Preview"
+                  className="w-full flex-1 border-none bg-white"
+                  srcDoc={editingTemplate.html || '<p style="color: #9CA3AF; font-family: sans-serif; padding: 20px;">Preview will appear here...</p>'}
+                  sandbox="allow-same-origin"
+                />
+              </div>
+            </div>
+          </div>
+          
+        </div>
+        {toast && <Toast {...toast} onClose={() => setToast(null)} />}
+      </div>
+    )
+  }
+
+  // ---- RENDER LIST VIEW ----
   return (
     <div className="flex flex-col gap-6 animate-reveal">
       {toast && <Toast {...toast} onClose={() => setToast(null)} />}
@@ -129,7 +255,7 @@ export default function TemplatesPage() {
             <span className="material-symbols-outlined text-[18px]">download</span>
             Load Defaults
           </button>
-          <button className="btn-primary flex items-center gap-2 px-4 py-2 bg-[#4F46E5] text-white rounded-md text-sm font-medium hover:bg-[#4338CA] transition-colors" onClick={() => setModalOpen(true)}>
+          <button className="btn-primary flex items-center gap-2 px-4 py-2 bg-[#4F46E5] text-white rounded-md text-sm font-medium hover:bg-[#4338CA] transition-colors" onClick={() => openEditor()}>
             <span className="material-symbols-outlined text-[18px]">add</span>
             Create Template
           </button>
@@ -152,7 +278,7 @@ export default function TemplatesPage() {
                       <span className="material-symbols-outlined text-[18px]">download</span>
                       Load Defaults
                     </button>
-                    <button className="btn-primary flex items-center gap-2 px-4 py-2 bg-[#4F46E5] text-white rounded-md text-sm font-medium hover:bg-[#4338CA] transition-colors" onClick={() => setModalOpen(true)}>
+                    <button className="btn-primary flex items-center gap-2 px-4 py-2 bg-[#4F46E5] text-white rounded-md text-sm font-medium hover:bg-[#4338CA] transition-colors" onClick={() => openEditor()}>
                       <span className="material-symbols-outlined text-[18px]">add</span>
                       Create Template
                     </button>
@@ -163,19 +289,28 @@ export default function TemplatesPage() {
           </div>
         ) : (
           templates.map((tpl, i) => (
-            <Card key={tpl.id} className="flex flex-col h-full hover:shadow-md transition-shadow cursor-pointer group" style={{ animation: 'fadeSlideUp 300ms ease-out forwards', opacity: 0, animationDelay: `${i * 50}ms` }}>
+            <Card 
+              key={tpl.id} 
+              className="flex flex-col h-full hover:shadow-lg hover:border-[#4F46E5] transition-all cursor-pointer group" 
+              style={{ animation: 'fadeSlideUp 300ms ease-out forwards', opacity: 0, animationDelay: `${i * 50}ms` }}
+              onClick={() => openEditor(tpl)}
+            >
               <div className="p-5 flex-1 flex flex-col">
                 <div className="flex justify-between items-start mb-3">
                   <span className="text-xs font-semibold uppercase tracking-wider text-[#4F46E5] bg-[#EEF2FF] px-2 py-1 rounded">
                     {tpl.category || 'General'}
                   </span>
                   <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button className="text-[#9CA3AF] hover:text-[#DC2626] p-1 transition-colors" onClick={(e) => { e.stopPropagation(); deleteTemplate(tpl.id); }}>
+                    <button 
+                      className="text-[#9CA3AF] hover:bg-[#FEF2F2] hover:text-[#DC2626] p-1.5 rounded-md transition-colors flex items-center justify-center" 
+                      onClick={(e) => deleteTemplate(tpl.id, e)}
+                      title="Delete Template"
+                    >
                       <span className="material-symbols-outlined text-[18px]">delete</span>
                     </button>
                   </div>
                 </div>
-                <h3 className="text-[#111827] font-display font-semibold text-lg leading-tight mb-1">{tpl.name}</h3>
+                <h3 className="text-[#111827] font-display font-semibold text-lg leading-tight mb-1 group-hover:text-[#4F46E5] transition-colors">{tpl.name}</h3>
                 <p className="text-[#6B7280] font-body text-sm flex-1 truncate">Subject: {tpl.subject || 'No Subject'}</p>
                 <div className="mt-4 pt-4 border-t border-[#F3F4F6] flex flex-wrap gap-2">
                   {(tpl.vars || []).length === 0 ? (
@@ -193,36 +328,6 @@ export default function TemplatesPage() {
           ))
         )}
       </div>
-
-      <Modal
-        open={modalOpen}
-        onClose={() => setModalOpen(false)}
-        title="Create New Template"
-        subtitle="Use {{variable_name}} to inject data dynamically."
-        footer={
-          <>
-            <button className="btn-secondary" onClick={() => setModalOpen(false)}>Cancel</button>
-            <button className="btn-primary" onClick={createTemplate} disabled={!formData.name.trim()}>
-              Save Template
-            </button>
-          </>
-        }
-      >
-        <div className="flex flex-col gap-4">
-          <Input label="Template Name" placeholder="e.g. Welcome Email" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} autoFocus />
-          <Input label="Category (optional)" placeholder="e.g. Onboarding, Receipts" value={formData.category} onChange={(e) => setFormData({ ...formData, category: e.target.value })} />
-          <Input label="Subject Line" placeholder="Welcome {{name}}!" value={formData.subject} onChange={(e) => setFormData({ ...formData, subject: e.target.value })} />
-          <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-medium text-[#374151]">HTML Body</label>
-            <textarea 
-              className="w-full h-40 resize-y rounded-md border border-[#D1D5DB] bg-white px-3 py-2 text-sm text-[#111827] font-mono focus:border-[#4F46E5] focus:outline-none focus:ring-1 focus:ring-[#4F46E5] placeholder:text-[#9CA3AF] transition-shadow duration-200"
-              placeholder="<h1>Hi {{name}}</h1><p>Welcome to our platform!</p>"
-              value={formData.html}
-              onChange={(e) => setFormData({ ...formData, html: e.target.value })}
-            />
-          </div>
-        </div>
-      </Modal>
     </div>
   )
 }
