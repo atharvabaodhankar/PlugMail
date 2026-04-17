@@ -7,8 +7,7 @@ export default function CodeSnippets({
   variablesText = '{\n  "name": "Developer"\n}' 
 }) {
   const [activeLang, setActiveLang] = useState('Node.js')
-  const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001/api'
-  const apiUrl = `${baseUrl}/send`
+  const apiUrl = 'https://api.plugmail.com/send' // Replace with your actual prod URL later
 
   const langs = ['Node.js', 'cURL', 'Python', 'Go', 'PHP']
 
@@ -131,11 +130,11 @@ echo $response;`
           <button
             key={lang}
             onClick={() => setActiveLang(lang)}
-            className={`px-3 py-2 text-sm font-mono transition-colors border-b-2 whitespace-nowrap ${
+            className={\`px-3 py-2 text-sm font-mono transition-colors border-b-2 whitespace-nowrap \${
               activeLang === lang 
                 ? 'text-[#38BDF8] border-[#38BDF8]' 
                 : 'text-[#94A3B8] border-transparent hover:text-[#CBD5E1]'
-            }`}
+            }\`}
           >
             {lang}
           </button>
