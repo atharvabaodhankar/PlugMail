@@ -5,6 +5,7 @@ import Modal from '../components/ui/Modal'
 import Input from '../components/ui/Input'
 import EmptyState from '../components/ui/EmptyState'
 import Toast from '../components/ui/Toast'
+import { defaultTemplates } from '../utils/defaultTemplates'
 
 export default function TemplatesPage() {
   const { getIdToken } = useAuth()
@@ -66,6 +67,35 @@ export default function TemplatesPage() {
     }
   }
 
+  const loadDefaultTemplates = async () => {
+    setLoading(true);
+    try {
+      const token = await getIdToken();
+      let newTemplates = [];
+      for (const tpl of defaultTemplates) {
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/templates`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(tpl)
+        });
+        if (res.ok) {
+          const newTpl = await res.json();
+          newTemplates.push(newTpl);
+        }
+      }
+      setTemplates(prev => [...newTemplates, ...prev]);
+      setToast({ type: 'success', title: 'Templates Loaded', body: `Successfully loaded ${newTemplates.length} default templates.` });
+    } catch (err) {
+      console.error(err);
+      setToast({ type: 'error', title: 'Error', body: 'Failed to load default templates.' });
+    } finally {
+      setLoading(false);
+    }
+  }
+
   const deleteTemplate = async (id) => {
     try {
       const token = await getIdToken()
@@ -94,10 +124,16 @@ export default function TemplatesPage() {
             Create reusable HTML email templates with variables.
           </p>
         </div>
-        <button className="btn-primary flex-shrink-0" onClick={() => setModalOpen(true)}>
-          <span className="material-symbols-outlined text-[18px]">add</span>
-          Create Template
-        </button>
+        <div className="flex gap-3 flex-shrink-0">
+          <button className="btn-secondary flex items-center gap-2 px-4 py-2 bg-white border border-[#D1D5DB] text-[#374151] rounded-md text-sm font-medium hover:bg-[#F9FAFB] transition-colors" onClick={loadDefaultTemplates}>
+            <span className="material-symbols-outlined text-[18px]">download</span>
+            Load Defaults
+          </button>
+          <button className="btn-primary flex items-center gap-2 px-4 py-2 bg-[#4F46E5] text-white rounded-md text-sm font-medium hover:bg-[#4338CA] transition-colors" onClick={() => setModalOpen(true)}>
+            <span className="material-symbols-outlined text-[18px]">add</span>
+            Create Template
+          </button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -111,10 +147,16 @@ export default function TemplatesPage() {
                 title="No templates yet"
                 body="Design your first HTML email template and use {{variables}} to personalize it."
                 action={
-                  <button className="btn-primary" onClick={() => setModalOpen(true)}>
-                    <span className="material-symbols-outlined text-[18px]">add</span>
-                    Create Template
-                  </button>
+                  <div className="flex gap-3 mt-4">
+                    <button className="btn-secondary flex items-center gap-2 px-4 py-2 bg-white border border-[#D1D5DB] text-[#374151] rounded-md text-sm font-medium hover:bg-[#F9FAFB] transition-colors" onClick={loadDefaultTemplates}>
+                      <span className="material-symbols-outlined text-[18px]">download</span>
+                      Load Defaults
+                    </button>
+                    <button className="btn-primary flex items-center gap-2 px-4 py-2 bg-[#4F46E5] text-white rounded-md text-sm font-medium hover:bg-[#4338CA] transition-colors" onClick={() => setModalOpen(true)}>
+                      <span className="material-symbols-outlined text-[18px]">add</span>
+                      Create Template
+                    </button>
+                  </div>
                 }
               />
             </Card>
