@@ -242,10 +242,11 @@ export default function PlaygroundPage() {
                   </p>
                 </div>
                 <div className="p-6 flex-1 overflow-y-auto">
-                  {/* Dangerously inject HTML for preview */}
-                  <div 
-                    className="prose prose-sm max-w-none" 
-                    dangerouslySetInnerHTML={{ __html: previewHtml }} 
+                  <iframe 
+                    title="Email Preview"
+                    className="w-full h-full border-none bg-white rounded-b-lg"
+                    srcDoc={previewHtml}
+                    sandbox="allow-same-origin"
                   />
                 </div>
               </div>
