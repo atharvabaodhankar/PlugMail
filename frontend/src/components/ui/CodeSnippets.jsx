@@ -130,11 +130,11 @@ echo $response;`
           <button
             key={lang}
             onClick={() => setActiveLang(lang)}
-            className={\`px-3 py-2 text-sm font-mono transition-colors border-b-2 whitespace-nowrap \${
+            className={`px-3 py-2 text-sm font-mono transition-colors border-b-2 whitespace-nowrap ${
               activeLang === lang 
                 ? 'text-[#38BDF8] border-[#38BDF8]' 
                 : 'text-[#94A3B8] border-transparent hover:text-[#CBD5E1]'
-            }\`}
+            }`}
           >
             {lang}
           </button>
