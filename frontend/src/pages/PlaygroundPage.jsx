@@ -3,6 +3,7 @@ import { useAuth } from '../context/AuthContext'
 import Card, { CardHeader } from '../components/ui/Card'
 import Input from '../components/ui/Input'
 import Toast from '../components/ui/Toast'
+import CodeSnippets from '../components/ui/CodeSnippets'
 
 export default function PlaygroundPage() {
   const { getIdToken } = useAuth()
@@ -199,29 +200,13 @@ export default function PlaygroundPage() {
 
           <Card>
             <CardHeader title="Code Snippets" subtitle="How to integrate in your app" />
-            <div className="p-6">
-              <div className="bg-[#1E293B] rounded-md overflow-hidden">
-                <div className="flex px-4 py-2 border-b border-[#334155] gap-4">
-                  <button className="text-sm font-mono text-[#38BDF8]">Node.js</button>
-                  <button className="text-sm font-mono text-[#94A3B8] hover:text-[#CBD5E1]">cURL</button>
-                </div>
-                <div className="p-4 overflow-x-auto">
-                  <pre className="text-sm text-[#E2E8F0] font-mono leading-relaxed">
-                    <code dangerouslySetInnerHTML={{ __html: `const response = await fetch('https://api.plugmail.com/send', {
-  method: 'POST',
-  headers: {
-    'x-api-key': '${selectedKey || 'pk_live_YOUR_KEY'}',
-    'Content-Type': 'application/json'
-  },
-  body: JSON.stringify({
-    to: '${toEmail || 'user@example.com'}',
-    template: '${selectedTemplate || 'welcome'}',
-    variables: ${variablesText.replace(/\n/g, '\n    ')}
-  })
-});`}} />
-                  </pre>
-                </div>
-              </div>
+            <div className="p-6 h-[400px]">
+              <CodeSnippets 
+                apiKey={selectedKey} 
+                toEmail={toEmail} 
+                templateName={selectedTemplate} 
+                variablesText={variablesText} 
+              />
             </div>
           </Card>
         </div>
