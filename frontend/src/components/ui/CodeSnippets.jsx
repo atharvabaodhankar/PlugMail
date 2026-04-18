@@ -7,7 +7,8 @@ export default function CodeSnippets({
   variablesText = '{\n  "name": "Developer"\n}' 
 }) {
   const [activeLang, setActiveLang] = useState('Node.js')
-  const apiUrl = 'https://api.plugmail.com/send' // Replace with your actual prod URL later
+  const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001/api'
+  const apiUrl = `${baseUrl}/send`
 
   const langs = ['Node.js', 'cURL', 'Python', 'Go', 'PHP']
 
