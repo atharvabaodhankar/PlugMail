@@ -4,6 +4,7 @@ import Card from '../components/ui/Card'
 import Input from '../components/ui/Input'
 import EmptyState from '../components/ui/EmptyState'
 import Toast from '../components/ui/Toast'
+import CodeSnippets from '../components/ui/CodeSnippets'
 import { defaultTemplates } from '../utils/defaultTemplates'
 
 export default function TemplatesPage() {
@@ -15,6 +16,7 @@ export default function TemplatesPage() {
   // Editor State
   const [editingTemplate, setEditingTemplate] = useState(null)
   const [isSaving, setIsSaving] = useState(false)
+  const [editorTab, setEditorTab] = useState('html')
 
   const fetchTemplates = async () => {
     try {
@@ -190,18 +192,47 @@ export default function TemplatesPage() {
               />
             </div>
             
-            <div className="flex-1 flex flex-col p-6">
-              <div className="flex items-center justify-between mb-2">
-                <label className="text-sm font-medium text-[#374151]">HTML Source</label>
-                <span className="text-xs text-[#9CA3AF] bg-[#F3F4F6] px-2 py-1 rounded">Supports {'{{variables}}'}</span>
+            <div className="flex-1 flex flex-col p-6 pt-0">
+              <div className="flex border-b border-[#E5E7EB] mb-4 gap-6">
+                <button 
+                  className={`pb-2 text-sm font-medium border-b-2 transition-colors ${editorTab === 'html' ? 'border-[#4F46E5] text-[#4F46E5]' : 'border-transparent text-[#6B7280] hover:text-[#374151]'}`}
+                  onClick={() => setEditorTab('html')}
+                >
+                  HTML Source
+                </button>
+                <button 
+                  className={`pb-2 text-sm font-medium border-b-2 transition-colors ${editorTab === 'snippets' ? 'border-[#4F46E5] text-[#4F46E5]' : 'border-transparent text-[#6B7280] hover:text-[#374151]'}`}
+                  onClick={() => setEditorTab('snippets')}
+                >
+                  API Snippets
+                </button>
               </div>
-              <textarea 
-                className="w-full flex-1 resize-none rounded-md border border-[#D1D5DB] bg-[#1E293B] text-[#E2E8F0] p-4 text-sm font-mono focus:border-[#4F46E5] focus:outline-none focus:ring-1 focus:ring-[#4F46E5] placeholder:text-[#64748B] transition-shadow duration-200"
-                placeholder="<h1>Hi {{name}}</h1><p>Welcome to our platform!</p>"
-                value={editingTemplate.html}
-                onChange={(e) => setEditingTemplate({ ...editingTemplate, html: e.target.value })}
-                spellCheck="false"
-              />
+
+              {editorTab === 'html' ? (
+                <>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-xs text-[#9CA3AF] bg-[#F3F4F6] px-2 py-1 rounded font-mono">Supports {'{{variables}}'}</span>
+                  </div>
+                  <textarea 
+                    className="w-full flex-1 resize-none rounded-md border border-[#D1D5DB] bg-[#1E293B] text-[#E2E8F0] p-4 text-sm font-mono focus:border-[#4F46E5] focus:outline-none focus:ring-1 focus:ring-[#4F46E5] placeholder:text-[#64748B] transition-shadow duration-200"
+                    placeholder="<h1>Hi {{name}}</h1><p>Welcome to our platform!</p>"
+                    value={editingTemplate.html}
+                    onChange={(e) => setEditingTemplate({ ...editingTemplate, html: e.target.value })}
+                    spellCheck="false"
+                  />
+                </>
+              ) : (
+                <div className="flex-1">
+                  <CodeSnippets 
+                    templateName={editingTemplate.name || 'welcome'} 
+                    variablesText={
+                      (editingTemplate.vars || []).length > 0 
+                        ? JSON.stringify(editingTemplate.vars.reduce((acc, v) => ({ ...acc, [v]: 'value' }), {}), null, 2)
+                        : '{}'
+                    }
+                  />
+                </div>
+              )}
             </div>
           </div>
 
