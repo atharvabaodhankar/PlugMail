@@ -8,6 +8,7 @@ import GmailAccountsPage from './pages/GmailAccountsPage'
 import TemplatesPage from './pages/TemplatesPage'
 import PlaygroundPage from './pages/PlaygroundPage'
 import AnalyticsPage from './pages/AnalyticsPage'
+import DocsPage from './pages/DocsPage'
 
 /** Shows a full-screen spinner while Firebase resolves auth state on first load */
 function LoadingScreen() {
@@ -50,6 +51,7 @@ function App() {
         <Route path="templates"  element={<TemplatesPage />} />
         <Route path="playground" element={<PlaygroundPage />} />
         <Route path="analytics"  element={<AnalyticsPage />} />
+        <Route path="docs"       element={<DocsPage />} />
       </Route>
 
       <Route path="*" element={<Navigate to="/dashboard" replace />} />
