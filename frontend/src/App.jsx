@@ -9,6 +9,7 @@ import TemplatesPage from './pages/TemplatesPage'
 import PlaygroundPage from './pages/PlaygroundPage'
 import AnalyticsPage from './pages/AnalyticsPage'
 import DocsPage from './pages/DocsPage'
+import LandingPage from './pages/LandingPage'
 
 /** Shows a full-screen spinner while Firebase resolves auth state on first load */
 function LoadingScreen() {
@@ -43,15 +44,16 @@ function App() {
     <Routes>
       <Route path="/login" element={<PublicRoute><LoginPage /></PublicRoute>} />
 
-      <Route path="/" element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
-        <Route index element={<Navigate to="/dashboard" replace />} />
-        <Route path="dashboard"  element={<OverviewPage />} />
-        <Route path="keys"       element={<ApiKeysPage />} />
-        <Route path="accounts"   element={<GmailAccountsPage />} />
-        <Route path="templates"  element={<TemplatesPage />} />
-        <Route path="playground" element={<PlaygroundPage />} />
-        <Route path="analytics"  element={<AnalyticsPage />} />
-        <Route path="docs"       element={<DocsPage />} />
+      <Route path="/" element={<LandingPage />} />
+
+      <Route element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
+        <Route path="/dashboard"  element={<OverviewPage />} />
+        <Route path="/keys"       element={<ApiKeysPage />} />
+        <Route path="/accounts"   element={<GmailAccountsPage />} />
+        <Route path="/templates"  element={<TemplatesPage />} />
+        <Route path="/playground" element={<PlaygroundPage />} />
+        <Route path="/analytics"  element={<AnalyticsPage />} />
+        <Route path="/docs"       element={<DocsPage />} />
       </Route>
 
       <Route path="*" element={<Navigate to="/dashboard" replace />} />
