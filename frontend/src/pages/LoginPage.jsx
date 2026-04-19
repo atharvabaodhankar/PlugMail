@@ -19,9 +19,7 @@ export default function LoginPage() {
       {/* Left panel — branding */}
       <div className="hidden lg:flex w-1/2 flex-col bg-[#FAFAFA] border-r border-[#E5E7EB] p-12">
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#0A84FF] to-[#5E5CE6] flex items-center justify-center">
-            <span className="text-white text-sm font-display font-bold">P</span>
-          </div>
+          <img src="/logo.png" alt="PlugMail Logo" className="w-8 h-8 object-contain" />
           <span className="font-display font-semibold text-[#111827] text-lg">PlugMail</span>
         </div>
 
@@ -62,9 +60,7 @@ export default function LoginPage() {
       {/* Right panel — sign in */}
       <div className="flex-1 flex flex-col items-center justify-center p-8">
         <div className="lg:hidden flex items-center gap-2.5 mb-10">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#0A84FF] to-[#5E5CE6] flex items-center justify-center">
-            <span className="text-white text-sm font-display font-bold">P</span>
-          </div>
+          <img src="/logo.png" alt="PlugMail Logo" className="w-8 h-8 object-contain" />
           <span className="font-display font-semibold text-[#111827] text-lg">PlugMail</span>
         </div>
 
