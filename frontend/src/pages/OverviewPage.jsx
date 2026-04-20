@@ -2,6 +2,7 @@ import StatCard from '../components/ui/StatCard'
 import Badge from '../components/ui/Badge'
 import Card, { CardHeader, CardBody } from '../components/ui/Card'
 import CodeBlock from '../components/ui/CodeBlock'
+import { Sun, Moon, CloudSun } from 'lucide-react'
 
 const RECENT_LOGS = [
   { id: 1, to: 'alice@gmail.com',   template: 'welcome',        status: 'sent',    time: 'May 9 · 14:22' },
@@ -42,8 +43,11 @@ export default function OverviewPage() {
     <div className="flex flex-col gap-8 animate-reveal">
       {/* Page greeting */}
       <div>
-        <h2 className="font-display font-semibold text-[#111827] text-2xl">
-          Good {getHour()}, Atharva. 👋
+        <h2 className="font-display font-semibold text-[#111827] text-2xl flex items-center gap-2">
+          Good {getHour()}, Atharva. 
+          {getHour() === 'morning' && <Sun className="w-6 h-6 text-yellow-500" />}
+          {getHour() === 'afternoon' && <CloudSun className="w-6 h-6 text-orange-400" />}
+          {getHour() === 'evening' && <Moon className="w-6 h-6 text-indigo-400" />}
         </h2>
         <p className="text-sm font-body text-[#6B7280] mt-1">{today}</p>
       </div>
