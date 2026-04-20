@@ -11,8 +11,15 @@ const RECENT_LOGS = [
   { id: 5, to: 'eve@product.co',    template: 'order-confirm',  status: 'pending', time: 'May 9 · 11:30' },
 ]
 
-const QUICK_START = `const response = await fetch(
-  "https://api.plugmail.dev/api/send",
+  return 'evening'
+}
+
+export default function OverviewPage() {
+  const today = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })
+  const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001/api'
+
+  const QUICK_START = `const response = await fetch(
+  "${baseUrl}/send",
   {
     method: "POST",
     headers: {
@@ -22,20 +29,10 @@ const QUICK_START = `const response = await fetch(
     body: JSON.stringify({
       to: "user@example.com",
       template: "welcome",
-      variables: { name: "Atharva" }
+      variables: { name: "Builder" }
     })
   }
 );`
-
-function getHour() {
-  const h = new Date().getHours()
-  if (h < 12) return 'morning'
-  if (h < 17) return 'afternoon'
-  return 'evening'
-}
-
-export default function OverviewPage() {
-  const today = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })
 
   return (
     <div className="flex flex-col gap-8 animate-reveal">
@@ -97,7 +94,7 @@ export default function OverviewPage() {
               <CodeBlock lang="Node.js" code={QUICK_START} />
               <div className="mt-4 p-3 bg-[#F8FAFC] border border-[#E2E8F0] rounded-lg">
                 <p className="text-[10px] section-label mb-1">Your API endpoint</p>
-                <code className="text-xs font-mono text-[#1E293B]">POST https://api.plugmail.dev/api/send</code>
+                <code className="text-xs font-mono text-[#1E293B]">POST {baseUrl}/send</code>
               </div>
             </CardBody>
           </Card>

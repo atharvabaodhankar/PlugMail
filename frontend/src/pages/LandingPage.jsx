@@ -1,12 +1,14 @@
 import React, { useEffect, useState } from 'react'
 import { motion, useScroll, useTransform } from 'framer-motion'
 import { Link } from 'react-router-dom'
-import { Terminal, Zap, LayoutTemplate, BarChart3, Globe, Shield, ArrowRight, CheckCircle2, Copy } from 'lucide-react'
+import { Terminal, Zap, LayoutTemplate, BarChart3, Globe, Shield, ArrowRight, CheckCircle2, Copy, Mail, Key, UserPlus, RefreshCw, Bell } from 'lucide-react'
 import Lenis from 'lenis'
 
 // --- CONSTANTS & DATA ---
 const NAV_LINKS = [
   { label: 'Features', href: '#features' },
+  { label: 'Analytics', href: '#analytics' },
+  { label: 'Templates', href: '#templates' },
   { label: 'Developers', href: '#developers' },
 ]
 
@@ -17,6 +19,19 @@ const FEATURES = [
   { title: 'Analytics dashboard', desc: 'Track opens, clicks, bounces, and delivery rates in real-time.', icon: <BarChart3 className="w-6 h-6 text-[#5E5CE6]" /> },
   { title: 'Secure API keys', desc: 'Granular API keys with prefix security and immediate rotation capabilities.', icon: <Shield className="w-6 h-6 text-[#0A84FF]" /> },
   { title: 'Test instantly', desc: 'Use our Playground to verify payload data and template variables before shipping.', icon: <Zap className="w-6 h-6 text-[#5E5CE6]" /> },
+]
+
+const TEMPLATES = [
+  { name: 'Welcome Email', icon: <UserPlus className="w-5 h-5" />, color: 'bg-blue-500' },
+  { name: 'OTP Verification', icon: <Key className="w-5 h-5" />, color: 'bg-indigo-500' },
+  { name: 'Password Reset', icon: <RefreshCw className="w-5 h-5" />, color: 'bg-purple-500' },
+  { name: 'App Notification', icon: <Bell className="w-5 h-5" />, color: 'bg-pink-500' },
+]
+
+const TESTIMONIALS = [
+  { name: 'Alex Rivera', role: 'Fullstack Developer', text: 'PlugMail saved me days of SMTP debugging. The Gmail integration is a game-changer for deliverability.', avatar: 'AR' },
+  { name: 'Sarah Chen', role: 'SaaS Founder', text: 'Cleanest email API I\'ve ever used. The template playground made testing dynamic variables effortless.', avatar: 'SC' },
+  { name: 'James Wilson', role: 'Indie Hacker', text: 'Finally, an email service that doesn\'t feel like it was built in 2005. Minimal, fast, and powerful.', avatar: 'JW' },
 ]
 
 // --- COMPONENTS ---
@@ -104,12 +119,25 @@ const HeroSection = () => {
         {/* Dashboard Mockup */}
         <motion.div 
           initial={{ opacity: 0, y: 100, rotateX: 20 }}
-          animate={{ opacity: 1, y: 0, rotateX: 0 }}
-          transition={{ duration: 1.2, delay: 0.5, ease: [0.16, 1, 0.3, 1] }}
+          animate={{ 
+            opacity: 1, 
+            y: [100, 0, -10, 0], 
+            rotateX: 0 
+          }}
+          transition={{ 
+            opacity: { duration: 1.2, delay: 0.5 },
+            y: { duration: 1.2, delay: 0.5, ease: [0.16, 1, 0.3, 1] },
+            rotateX: { duration: 1.2, delay: 0.5 },
+            repeat: 0
+          }}
           style={{ perspective: 1000 }}
           className="mt-20 relative mx-auto max-w-5xl"
         >
-          <div className="rounded-2xl border border-[#E5E7EB] bg-white/80 backdrop-blur-2xl shadow-2xl overflow-hidden aspect-[16/9] relative">
+          <motion.div 
+            animate={{ y: [0, -15, 0] }}
+            transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+            className="rounded-2xl border border-[#E5E7EB] bg-white/80 backdrop-blur-2xl shadow-2xl overflow-hidden aspect-[16/9] relative"
+          >
             {/* Fake macOS window header */}
             <div className="h-12 border-b border-[#E5E7EB] flex items-center px-4 gap-2 bg-[#FAFAFA]">
               <div className="w-3 h-3 rounded-full bg-red-400" />
@@ -117,23 +145,45 @@ const HeroSection = () => {
               <div className="w-3 h-3 rounded-full bg-green-400" />
             </div>
             {/* Fake dashboard content */}
-            <div className="p-8 flex h-[calc(100%-3rem)] gap-8 bg-white">
+            <div className="p-8 flex h-[calc(100%-3rem)] gap-8 bg-white text-left">
               <div className="w-48 flex flex-col gap-4">
-                <div className="h-8 bg-gray-100 rounded" />
-                <div className="h-8 bg-gray-50 rounded" />
-                <div className="h-8 bg-gray-50 rounded" />
-                <div className="h-8 bg-gray-50 rounded" />
+                <div className="h-8 bg-gray-100 rounded-lg flex items-center px-3 text-[10px] text-gray-400 font-bold uppercase tracking-widest">Dashboard</div>
+                <div className="h-8 bg-gray-50 rounded-lg" />
+                <div className="h-8 bg-gray-50 rounded-lg" />
+                <div className="h-8 bg-gray-50 rounded-lg" />
               </div>
               <div className="flex-1 flex flex-col gap-6">
                 <div className="flex gap-4">
-                  <div className="h-24 flex-1 bg-gradient-to-br from-[#0A84FF]/10 to-[#5E5CE6]/10 border border-[#E5E7EB] rounded-xl" />
-                  <div className="h-24 flex-1 bg-gray-50 border border-[#E5E7EB] rounded-xl" />
-                  <div className="h-24 flex-1 bg-gray-50 border border-[#E5E7EB] rounded-xl" />
+                  <div className="h-24 flex-1 bg-gradient-to-br from-[#0A84FF]/10 to-[#5E5CE6]/10 border border-[#E5E7EB] rounded-xl p-4">
+                    <div className="text-[10px] text-gray-400 font-bold uppercase mb-1">Deliverability</div>
+                    <div className="text-2xl font-bold text-[#111827]">99.8%</div>
+                  </div>
+                  <div className="h-24 flex-1 bg-gray-50 border border-[#E5E7EB] rounded-xl p-4">
+                    <div className="text-[10px] text-gray-400 font-bold uppercase mb-1">Emails Sent</div>
+                    <div className="text-2xl font-bold text-[#111827]">12,482</div>
+                  </div>
+                  <div className="h-24 flex-1 bg-gray-50 border border-[#E5E7EB] rounded-xl p-4">
+                    <div className="text-[10px] text-gray-400 font-bold uppercase mb-1">Active Keys</div>
+                    <div className="text-2xl font-bold text-[#111827]">4</div>
+                  </div>
                 </div>
-                <div className="flex-1 bg-gray-50 border border-[#E5E7EB] rounded-xl" />
+                <div className="flex-1 bg-gray-50 border border-[#E5E7EB] rounded-xl p-6 relative">
+                   <div className="text-[10px] text-gray-400 font-bold uppercase mb-4">Traffic Real-time</div>
+                   <div className="w-full h-full flex items-end gap-2 overflow-hidden pb-4">
+                      {[40, 70, 45, 90, 65, 80, 55, 95, 40, 60, 85, 30, 50, 75, 45, 90].map((h, i) => (
+                        <motion.div 
+                          key={i} 
+                          initial={{ height: 0 }}
+                          animate={{ height: `${h}%` }}
+                          transition={{ duration: 1, delay: 0.8 + (i * 0.05) }}
+                          className="flex-1 bg-blue-500/20 border-t-2 border-blue-500 rounded-t-sm" 
+                        />
+                      ))}
+                   </div>
+                </div>
               </div>
             </div>
-          </div>
+          </motion.div>
         </motion.div>
       </div>
     </section>
@@ -265,8 +315,191 @@ const FeaturesSection = () => {
   )
 }
 
+const AnalyticsSection = () => {
+  return (
+    <section id="analytics" className="py-32 relative bg-[#FAFAFA] overflow-hidden">
+      <div className="max-w-7xl mx-auto px-6 grid lg:grid-cols-2 gap-20 items-center">
+        <motion.div
+          initial={{ opacity: 0, x: -50 }}
+          whileInView={{ opacity: 1, x: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.8 }}
+        >
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 text-blue-600 text-xs font-bold uppercase tracking-widest mb-6">
+            Real-time Insights
+          </div>
+          <h2 className="font-display font-bold text-4xl text-[#111827] mb-6 leading-tight">
+            Monitor every email <br /> with surgical precision.
+          </h2>
+          <p className="font-body text-[#6B7280] text-lg mb-10 leading-relaxed">
+            Gain deep visibility into your email infrastructure. Track delivery rates, open metrics, and bounce logs in real-time with our high-performance analytics engine.
+          </p>
+          <div className="grid grid-cols-2 gap-8">
+            <div>
+              <div className="text-3xl font-bold text-[#111827] mb-1">99.9%</div>
+              <div className="text-sm text-[#6B7280]">Uptime SLA</div>
+            </div>
+            <div>
+              <div className="text-3xl font-bold text-[#111827] mb-1">&lt; 50ms</div>
+              <div className="text-sm text-[#6B7280]">API Latency</div>
+            </div>
+          </div>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          whileInView={{ opacity: 1, scale: 1 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.8 }}
+          className="relative"
+        >
+          <div className="aspect-square rounded-3xl border border-[#E5E7EB] bg-white shadow-2xl p-8 flex flex-col gap-8">
+            <div className="flex items-center justify-between">
+              <h4 className="font-display font-bold text-[#111827]">Engagement Overview</h4>
+              <div className="flex gap-2">
+                <div className="w-8 h-8 rounded-lg bg-gray-50 flex items-center justify-center text-gray-400 text-xs font-bold">1D</div>
+                <div className="w-8 h-8 rounded-lg bg-blue-500 flex items-center justify-center text-white text-xs font-bold">7D</div>
+              </div>
+            </div>
+            
+            <div className="flex-1 flex items-end gap-3 pb-4 border-b border-gray-100">
+              {[60, 40, 90, 70, 50, 100, 80, 60, 95, 75].map((h, i) => (
+                <motion.div 
+                  key={i}
+                  initial={{ height: 0 }}
+                  whileInView={{ height: `${h}%` }}
+                  transition={{ duration: 1, delay: i * 0.1 }}
+                  className="flex-1 bg-gradient-to-t from-blue-500/20 to-blue-500 rounded-t-lg"
+                />
+              ))}
+            </div>
+
+            <div className="grid grid-cols-3 gap-4 text-center">
+              <div>
+                <div className="text-xs text-gray-400 font-bold uppercase mb-1">Opens</div>
+                <div className="text-xl font-bold text-[#111827]">84.2%</div>
+              </div>
+              <div>
+                <div className="text-xs text-gray-400 font-bold uppercase mb-1">Clicks</div>
+                <div className="text-xl font-bold text-[#111827]">12.5%</div>
+              </div>
+              <div>
+                <div className="text-xs text-gray-400 font-bold uppercase mb-1">Bounces</div>
+                <div className="text-xl font-bold text-red-500">0.02%</div>
+              </div>
+            </div>
+          </div>
+          
+          {/* Floating stat chip */}
+          <motion.div 
+            animate={{ y: [0, -10, 0] }}
+            transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+            className="absolute -top-6 -right-6 p-4 rounded-2xl bg-white shadow-xl border border-[#E5E7EB] flex items-center gap-3"
+          >
+            <div className="w-10 h-10 rounded-full bg-green-100 text-green-600 flex items-center justify-center">
+              <CheckCircle2 className="w-6 h-6" />
+            </div>
+            <div>
+              <div className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Status</div>
+              <div className="text-sm font-bold text-[#111827]">Systems Nominal</div>
+            </div>
+          </motion.div>
+        </motion.div>
+      </div>
+    </section>
+  )
+}
+
+const TemplateShowcase = () => {
+  return (
+    <section id="templates" className="py-32 relative bg-white overflow-hidden">
+      <div className="max-w-7xl mx-auto px-6">
+        <div className="flex flex-col md:flex-row items-end justify-between mb-16 gap-6">
+          <div className="max-w-2xl">
+            <h2 className="font-display font-bold text-4xl text-[#111827] mb-4">Beautifully crafted templates</h2>
+            <p className="font-body text-[#6B7280] text-lg">
+              Start from professional templates or build your own with our easy-to-use editor. Responsive by default.
+            </p>
+          </div>
+          <Link to="/login" className="flex items-center gap-2 text-[#0A84FF] font-semibold group">
+            Explore All Templates <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+          </Link>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          {TEMPLATES.map((tmpl, i) => (
+            <motion.div
+              key={i}
+              initial={{ opacity: 0, scale: 0.9 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: i * 0.1 }}
+              whileHover={{ y: -8 }}
+              className="group cursor-pointer"
+            >
+              <div className="aspect-[3/4] rounded-2xl border border-[#E5E7EB] bg-[#FAFAFA] mb-4 overflow-hidden relative shadow-sm group-hover:shadow-xl transition-all">
+                <div className={`absolute top-4 left-4 w-10 h-10 rounded-xl ${tmpl.color} text-white flex items-center justify-center shadow-lg`}>
+                  {tmpl.icon}
+                </div>
+                {/* Fake template preview lines */}
+                <div className="p-8 pt-20 space-y-4">
+                  <div className="h-4 w-3/4 bg-gray-200 rounded" />
+                  <div className="h-4 w-full bg-gray-100 rounded" />
+                  <div className="h-4 w-5/6 bg-gray-100 rounded" />
+                  <div className="h-20 w-full bg-gray-50 rounded-lg border border-gray-100 mt-6" />
+                  <div className="h-8 w-24 bg-blue-500 rounded-md mt-4" />
+                </div>
+                <div className="absolute inset-0 bg-gradient-to-t from-white/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+              </div>
+              <h3 className="font-display font-bold text-[#111827]">{tmpl.name}</h3>
+              <p className="text-xs text-[#6B7280] uppercase tracking-widest font-bold mt-1">Responsive</p>
+            </motion.div>
+          ))}
+        </div>
+      </div>
+    </section>
+  )
+}
+
+const SocialProof = () => {
+  return (
+    <section className="py-32 relative bg-[#FAFAFA] border-y border-[#E5E7EB]">
+      <div className="max-w-7xl mx-auto px-6">
+        <div className="grid md:grid-cols-3 gap-12">
+          {TESTIMONIALS.map((t, i) => (
+            <motion.div 
+              key={i}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6, delay: i * 0.1 }}
+              className="flex flex-col h-full"
+            >
+              <div className="flex gap-1 mb-6 text-yellow-400">
+                {[...Array(5)].map((_, i) => <Zap key={i} className="w-4 h-4 fill-current" />)}
+              </div>
+              <p className="font-body text-[#111827] text-lg leading-relaxed italic mb-8 flex-1">
+                "{t.text}"
+              </p>
+              <div className="flex items-center gap-4 mt-auto">
+                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#0A84FF] to-[#5E5CE6] flex items-center justify-center text-white font-bold shadow-lg">
+                  {t.avatar}
+                </div>
+                <div>
+                  <div className="font-display font-bold text-[#111827]">{t.name}</div>
+                  <div className="text-sm text-[#6B7280]">{t.role}</div>
+                </div>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+      </div>
+    </section>
+  )
+}
+
 const FinalCTA = () => (
-  <section className="py-32 relative overflow-hidden border-t border-[#E5E7EB] bg-white">
+  <section className="py-32 relative overflow-hidden bg-white">
     <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-[#0A84FF]/5 via-transparent to-transparent opacity-50" />
     <div className="max-w-4xl mx-auto px-6 text-center relative z-10">
       <h2 className="font-display font-bold text-5xl md:text-7xl text-[#111827] mb-8 tracking-tight">
@@ -288,6 +521,7 @@ const Footer = () => (
       </div>
       <div className="flex gap-6 text-sm text-[#6B7280]">
         <a href="#features" className="hover:text-[#111827] transition-colors">Features</a>
+        <a href="#templates" className="hover:text-[#111827] transition-colors">Templates</a>
         <a href="https://github.com/atharvabaodhankar/plugmail" target="_blank" rel="noreferrer" className="hover:text-[#111827] transition-colors">GitHub</a>
         <a href="#" className="hover:text-[#111827] transition-colors">Terms</a>
         <a href="#" className="hover:text-[#111827] transition-colors">Privacy</a>
@@ -331,6 +565,9 @@ export default function LandingPage() {
         <HeroSection />
         <AnimatedCodeSection />
         <FeaturesSection />
+        <AnalyticsSection />
+        <TemplateShowcase />
+        <SocialProof />
         <FinalCTA />
       </main>
       <Footer />
