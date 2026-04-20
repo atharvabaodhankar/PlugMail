@@ -11,6 +11,10 @@ const RECENT_LOGS = [
   { id: 5, to: 'eve@product.co',    template: 'order-confirm',  status: 'pending', time: 'May 9 · 11:30' },
 ]
 
+function getHour() {
+  const h = new Date().getHours()
+  if (h < 12) return 'morning'
+  if (h < 17) return 'afternoon'
   return 'evening'
 }
 
