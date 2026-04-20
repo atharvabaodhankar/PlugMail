@@ -34,7 +34,7 @@ export default function PlaygroundPage() {
           const ks = await keysRes.json()
           const activeKeys = ks.filter(k => k.active)
           setKeys(activeKeys)
-          if (activeKeys.length > 0) setSelectedKey(activeKeys[0].id) // Default to first (just for UI ID, we don't have the raw key)
+          if (activeKeys.length > 0) setSelectedKey(activeKeys[0].maskedKey)
         }
 
         // Fetch Templates
@@ -71,16 +71,12 @@ export default function PlaygroundPage() {
 
     setLoading(true)
     try {
-      // For the playground, we actually hit the real /api/send endpoint!
-      // But wait... the playground only has the *masked* API key. 
-      // To truly test the API using x-api-key, the user needs to paste their RAW key.
-      // So we must ask the user for their raw key in the playground.
-      
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/send`, {
+      const token = await getIdToken()
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/send/test`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-api-key': selectedKey // The user must PASTE the raw key here!
+          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({
           to: toEmail,
@@ -146,14 +142,22 @@ export default function PlaygroundPage() {
             <CardHeader title="Request Setup" />
             <div className="p-6 flex flex-col gap-5 border-b border-[#F3F4F6]">
               
-              <Input
-                label="Raw API Key (x-api-key)"
-                placeholder="pk_live_..."
-                value={selectedKey}
-                onChange={(e) => setSelectedKey(e.target.value)}
-                helper="Paste your raw API key here to test the actual endpoint."
-                type="password"
-              />
+              <div className="flex flex-col gap-1.5">
+                <label className="text-sm font-medium text-[#374151]">API Key (x-api-key)</label>
+                <select
+                  className="w-full rounded-md border border-[#D1D5DB] bg-white px-3 py-2 text-sm text-[#111827] focus:border-[#4F46E5] focus:outline-none focus:ring-1 focus:ring-[#4F46E5] appearance-none"
+                  value={selectedKey}
+                  onChange={(e) => setSelectedKey(e.target.value)}
+                >
+                  <option value="" disabled>-- Select an API Key --</option>
+                  {keys.map(k => (
+                    <option key={k.id} value={k.maskedKey}>{k.name} ({k.maskedKey})</option>
+                  ))}
+                </select>
+                <p className="text-[11px] text-[#6B7280]">
+                  Select an active key to update the code snippets below. The playground will automatically authorize your test send using your current session.
+                </p>
+              </div>
 
               <div className="flex flex-col gap-1.5">
                 <label className="text-sm font-medium text-[#374151]">Template</label>

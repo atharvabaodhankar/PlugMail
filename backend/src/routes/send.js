@@ -2,6 +2,7 @@ const express = require('express');
 const Handlebars = require('handlebars');
 const { db } = require('../firebase');
 const { requireApiKey } = require('../middleware/apiKeyAuth');
+const { requireAuth } = require('../middleware/auth');
 const { decrypt } = require('../utils/crypto');
 const { createTransporter, sendMail } = require('../utils/mailer');
 
@@ -12,6 +13,18 @@ const router = express.Router();
  * Core sending infrastructure. Protected by x-api-key header.
  */
 router.post('/', requireApiKey, async (req, res) => {
+  return handleSend(req, res, req.userId);
+});
+
+/**
+ * POST /api/send/test
+ * Internal playground testing. Protected by Firebase Auth (JWT).
+ */
+router.post('/test', requireAuth, async (req, res) => {
+  return handleSend(req, res, req.user.uid);
+});
+
+async function handleSend(req, res, userId) {
   try {
     const { to, template: templateName, variables, subject: overrideSubject } = req.body;
     
@@ -19,8 +32,6 @@ router.post('/', requireApiKey, async (req, res) => {
     if (!to || !templateName) {
       return res.status(400).json({ error: 'Missing required fields: to, template' });
     }
-
-    const userId = req.userId;
 
     // 2. Fetch User's Template
     const templateSnapshot = await db.collection('templates')
@@ -88,6 +99,6 @@ router.post('/', requireApiKey, async (req, res) => {
     console.error('Send API Error:', error);
     res.status(500).json({ error: 'Internal Server Error' });
   }
-});
+}
 
 module.exports = router;
