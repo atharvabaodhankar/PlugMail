@@ -28,12 +28,6 @@ const TEMPLATES = [
   { name: 'App Notification', icon: <Bell className="w-5 h-5" />, color: 'bg-pink-500' },
 ]
 
-const TESTIMONIALS = [
-  { name: 'Alex Rivera', role: 'Fullstack Developer', text: 'PlugMail saved me days of SMTP debugging. The Gmail integration is a game-changer for deliverability.', avatar: 'AR' },
-  { name: 'Sarah Chen', role: 'SaaS Founder', text: 'Cleanest email API I\'ve ever used. The template playground made testing dynamic variables effortless.', avatar: 'SC' },
-  { name: 'James Wilson', role: 'Indie Hacker', text: 'Finally, an email service that doesn\'t feel like it was built in 2005. Minimal, fast, and powerful.', avatar: 'JW' },
-]
-
 // --- COMPONENTS ---
 
 const Navbar = () => (
@@ -461,43 +455,6 @@ const TemplateShowcase = () => {
   )
 }
 
-const SocialProof = () => {
-  return (
-    <section className="py-32 relative bg-[#FAFAFA] border-y border-[#E5E7EB]">
-      <div className="max-w-7xl mx-auto px-6">
-        <div className="grid md:grid-cols-3 gap-12">
-          {TESTIMONIALS.map((t, i) => (
-            <motion.div 
-              key={i}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: i * 0.1 }}
-              className="flex flex-col h-full"
-            >
-              <div className="flex gap-1 mb-6 text-yellow-400">
-                {[...Array(5)].map((_, i) => <Zap key={i} className="w-4 h-4 fill-current" />)}
-              </div>
-              <p className="font-body text-[#111827] text-lg leading-relaxed italic mb-8 flex-1">
-                "{t.text}"
-              </p>
-              <div className="flex items-center gap-4 mt-auto">
-                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#0A84FF] to-[#5E5CE6] flex items-center justify-center text-white font-bold shadow-lg">
-                  {t.avatar}
-                </div>
-                <div>
-                  <div className="font-display font-bold text-[#111827]">{t.name}</div>
-                  <div className="text-sm text-[#6B7280]">{t.role}</div>
-                </div>
-              </div>
-            </motion.div>
-          ))}
-        </div>
-      </div>
-    </section>
-  )
-}
-
 const FinalCTA = () => (
   <section className="py-32 relative overflow-hidden bg-white">
     <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-[#0A84FF]/5 via-transparent to-transparent opacity-50" />
@@ -567,7 +524,6 @@ export default function LandingPage() {
         <FeaturesSection />
         <AnalyticsSection />
         <TemplateShowcase />
-        <SocialProof />
         <FinalCTA />
       </main>
       <Footer />
