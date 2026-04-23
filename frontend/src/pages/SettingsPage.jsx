@@ -1,124 +1,16 @@
-import { useState, useEffect } from 'react'
 import { useAuth } from '../context/AuthContext'
 import Card, { CardHeader, CardBody } from '../components/ui/Card'
-import Modal from '../components/ui/Modal'
 import { LogOut, User, Shield, Bell } from 'lucide-react'
 
-const Toggle = ({ label, description, enabled, onChange }) => (
-  <div className="flex items-center justify-between py-4 border-b border-[#F3F4F6] last:border-0">
-    <div className="flex flex-col gap-0.5">
-      <span className="text-sm font-semibold text-[#111827]">{label}</span>
-      <span className="text-xs text-[#6B7280] font-body">{description}</span>
-    </div>
-    <button
-      onClick={onChange}
-      className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none ${
-        enabled ? 'bg-[#10B981]' : 'bg-[#E5E7EB]'
-      }`}
-    >
-      <span
-        className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${
-          enabled ? 'translate-x-5' : 'translate-x-1'
-        }`}
-      />
-    </button>
-  </div>
-)
-
 export default function SettingsPage() {
-  const { user, logout, getIdToken } = useAuth()
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
-  const [isDeleting, setIsDeleting] = useState(false)
-  const [activeTab, setActiveTab] = useState('profile')
-  const [loading, setLoading] = useState(true)
-  const [settings, setSettings] = useState({
-    notifications: { emailOnFailure: true, weeklyReport: false, securityAlerts: true },
-    security: { twoFactorAuth: false, sessionTimeout: 60, ipWhitelisting: false }
-  })
-
-  useEffect(() => {
-    fetchSettings()
-  }, [])
-
-  const fetchSettings = async () => {
-    try {
-      const token = await getIdToken()
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/user/settings`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      })
-      if (res.ok) {
-        const data = await res.json()
-        setSettings(data.settings)
-      }
-    } catch (err) {
-      console.error('Failed to fetch settings:', err)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const toggleSetting = async (category, key) => {
-    const newSettings = {
-      ...settings,
-      [category]: {
-        ...settings[category],
-        [key]: !settings[category][key]
-      }
-    }
-    
-    // Optimistic update
-    setSettings(newSettings)
-
-    try {
-      const token = await getIdToken()
-      await fetch(`${import.meta.env.VITE_API_URL}/user/settings`, {
-        method: 'PATCH',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ settings: newSettings })
-      })
-    } catch (err) {
-      console.error('Failed to update settings:', err)
-      // Rollback on error
-      fetchSettings()
-    }
-  }
-
-  const handleDeleteAccount = async () => {
-    setIsDeleting(true)
-    try {
-      const token = await getIdToken()
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/user`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      })
-
-      if (res.ok) {
-        await logout()
-      } else {
-        const data = await res.json()
-        alert(data.error || 'Failed to delete account')
-        setIsDeleteModalOpen(false)
-      }
-    } catch (error) {
-      console.error('Delete account error:', error)
-      alert('An error occurred while deleting your account.')
-      setIsDeleteModalOpen(false)
-    } finally {
-      setIsDeleting(false)
-    }
-  }
+  const { user, logout } = useAuth()
 
   return (
     <div className="flex flex-col gap-8 animate-reveal pb-10">
       <div>
         <h2 className="font-display font-semibold text-[#111827] text-2xl">Settings</h2>
         <p className="text-sm font-body text-[#6B7280] mt-1">
-          Manage your account preferences and security.
+          Manage your account preferences and subscription.
         </p>
       </div>
 
@@ -126,19 +18,19 @@ export default function SettingsPage() {
         {/* Sidebar-style Nav (Internal to page) */}
         <div className="lg:col-span-1 flex flex-col gap-2">
           {[
-            { id: 'profile', label: 'Profile', icon: User },
+            { id: 'profile', label: 'Profile', icon: User, active: true },
+            { id: 'security', label: 'Security', icon: Shield },
             { id: 'notifications', label: 'Notifications', icon: Bell },
           ].map((item) => (
             <button
               key={item.id}
-              onClick={() => setActiveTab(item.id)}
               className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all ${
-                activeTab === item.id 
+                item.active 
                 ? 'bg-[#F3F4F6] text-[#111827] shadow-sm' 
                 : 'text-[#6B7280] hover:bg-[#F9FAFB] hover:text-[#111827]'
               }`}
             >
-              <item.icon className={`w-4 h-4 ${activeTab === item.id ? 'text-[#0A84FF]' : 'text-[#9CA3AF]'}`} />
+              <item.icon className={`w-4 h-4 ${item.active ? 'text-[#0A84FF]' : 'text-[#9CA3AF]'}`} />
               {item.label}
             </button>
           ))}
@@ -156,147 +48,74 @@ export default function SettingsPage() {
 
         {/* Content Area */}
         <div className="lg:col-span-2 flex flex-col gap-6">
-          {activeTab === 'profile' && (
-            <>
-              <Card>
-                <CardHeader title="Profile Information" subtitle="Your account details" />
-                <CardBody className="flex flex-col gap-6">
-                  <div className="flex items-center gap-4">
-                    <img 
-                      src={user?.photoURL} 
-                      alt={user?.displayName} 
-                      className="w-16 h-16 rounded-full border-2 border-[#E5E7EB]"
-                    />
-                    <div>
-                      <h4 className="text-sm font-semibold text-[#111827]">{user?.displayName}</h4>
-                      <p className="text-xs text-[#6B7280] font-body">{user?.email}</p>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="flex flex-col gap-1.5">
-                      <label className="text-xs font-semibold text-[#374151] uppercase tracking-wider">Full Name</label>
-                      <div className="px-3 py-2 bg-[#F9FAFB] border border-[#E5E7EB] rounded-lg text-sm text-[#111827] font-medium">
-                        {user?.displayName}
-                      </div>
-                    </div>
-                    <div className="flex flex-col gap-1.5">
-                      <label className="text-xs font-semibold text-[#374151] uppercase tracking-wider">Email Address</label>
-                      <div className="px-3 py-2 bg-[#F9FAFB] border border-[#E5E7EB] rounded-lg text-sm text-[#111827] font-medium">
-                        {user?.email}
-                      </div>
-                    </div>
-                  </div>
-                </CardBody>
-              </Card>
-
-              <Card>
-                <CardHeader title="Usage & Plan" subtitle="Currently active tier" />
-                <CardBody>
-                  <div className="p-4 bg-gradient-to-br from-[#F8FAFC] to-[#F1F5F9] border border-[#E2E8F0] rounded-xl flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 rounded-lg bg-white border border-[#E2E8F0] flex items-center justify-center text-[#10B981] shadow-sm">
-                        <span className="material-symbols-outlined">verified</span>
-                      </div>
-                      <div>
-                        <h4 className="text-sm font-bold text-[#1E293B]">Free Forever</h4>
-                        <p className="text-xs text-[#64748B]">Unlimited access to all features</p>
-                      </div>
-                    </div>
-                    <div className="px-3 py-1 bg-[#DCFCE7] text-[#166534] text-[10px] font-bold rounded-full uppercase">
-                      Active
-                    </div>
-                  </div>
-                </CardBody>
-              </Card>
-
-              <Card>
-                <CardHeader title="Account Management" subtitle="Danger Zone" />
-                <CardBody>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h4 className="text-sm font-semibold text-[#111827]">Delete Account</h4>
-                      <p className="text-xs text-[#6B7280] font-body">Permanently remove your account and all data.</p>
-                    </div>
-                    <button 
-                      onClick={() => setIsDeleteModalOpen(true)}
-                      className="px-4 py-2 border border-[#FEE2E2] text-[#DC2626] rounded-lg text-xs font-bold hover:bg-[#FEF2F2] transition-all"
-                    >
-                      Delete
-                    </button>
-                  </div>
-                </CardBody>
-              </Card>
-            </>
-          )}
-
-
-          {activeTab === 'notifications' && (
-            <Card>
-              <CardHeader title="Notification Preferences" subtitle="How we should reach you" />
-              <CardBody className="divide-y divide-[#F3F4F6]">
-                <Toggle 
-                  label="Email on Failure" 
-                  description="Receive an alert when an email fails to deliver."
-                  enabled={settings.notifications.emailOnFailure}
-                  onChange={() => toggleSetting('notifications', 'emailOnFailure')}
+          <Card>
+            <CardHeader title="Profile Information" subtitle="Your account details" />
+            <CardBody className="flex flex-col gap-6">
+              <div className="flex items-center gap-4">
+                <img 
+                  src={user?.photoURL} 
+                  alt={user?.displayName} 
+                  className="w-16 h-16 rounded-full border-2 border-[#E5E7EB]"
                 />
-                <Toggle 
-                  label="Weekly Usage Report" 
-                  description="Get a summary of your email analytics every Monday."
-                  enabled={settings.notifications.weeklyReport}
-                  onChange={() => toggleSetting('notifications', 'weeklyReport')}
-                />
-                <Toggle 
-                  label="Security Alerts" 
-                  description="Get notified about new API keys or suspicious logins."
-                  enabled={settings.notifications.securityAlerts}
-                  onChange={() => toggleSetting('notifications', 'securityAlerts')}
-                />
-              </CardBody>
-            </Card>
-          )}
+                <div>
+                  <h4 className="text-sm font-semibold text-[#111827]">{user?.displayName}</h4>
+                  <p className="text-xs text-[#6B7280] font-body">{user?.email}</p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-semibold text-[#374151] uppercase tracking-wider">Full Name</label>
+                  <div className="px-3 py-2 bg-[#F9FAFB] border border-[#E5E7EB] rounded-lg text-sm text-[#111827] font-medium">
+                    {user?.displayName}
+                  </div>
+                </div>
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-semibold text-[#374151] uppercase tracking-wider">Email Address</label>
+                  <div className="px-3 py-2 bg-[#F9FAFB] border border-[#E5E7EB] rounded-lg text-sm text-[#111827] font-medium">
+                    {user?.email}
+                  </div>
+                </div>
+              </div>
+            </CardBody>
+          </Card>
+
+          <Card>
+            <CardHeader title="Usage & Plan" subtitle="Currently active tier" />
+            <CardBody>
+              <div className="p-4 bg-gradient-to-br from-[#F8FAFC] to-[#F1F5F9] border border-[#E2E8F0] rounded-xl flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-lg bg-white border border-[#E2E8F0] flex items-center justify-center text-[#10B981] shadow-sm">
+                    <span className="material-symbols-outlined">verified</span>
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-bold text-[#1E293B]">Free Forever</h4>
+                    <p className="text-xs text-[#64748B]">Unlimited access to all features</p>
+                  </div>
+                </div>
+                <div className="px-3 py-1 bg-[#DCFCE7] text-[#166534] text-[10px] font-bold rounded-full uppercase">
+                  Active
+                </div>
+              </div>
+            </CardBody>
+          </Card>
+
+          <Card>
+            <CardHeader title="Account Management" subtitle="Danger Zone" />
+            <CardBody>
+              <div className="flex items-center justify-between">
+                <div>
+                  <h4 className="text-sm font-semibold text-[#111827]">Delete Account</h4>
+                  <p className="text-xs text-[#6B7280] font-body">Permanently remove your account and all data.</p>
+                </div>
+                <button className="px-4 py-2 border border-[#FEE2E2] text-[#DC2626] rounded-lg text-xs font-bold hover:bg-[#FEF2F2] transition-all">
+                  Delete
+                </button>
+              </div>
+            </CardBody>
+          </Card>
         </div>
       </div>
-
-      <Modal
-        open={isDeleteModalOpen}
-        onClose={() => setIsDeleteModalOpen(false)}
-        title="Delete Account"
-        subtitle="This action is permanent and cannot be undone."
-        footer={
-          <>
-            <button 
-              onClick={() => setIsDeleteModalOpen(false)}
-              className="px-4 py-2 text-sm font-medium text-[#4B5563] hover:bg-[#F3F4F6] rounded-lg transition-all"
-            >
-              Cancel
-            </button>
-            <button 
-              onClick={handleDeleteAccount}
-              disabled={isDeleting}
-              className="px-4 py-2 text-sm font-bold text-white bg-[#EF4444] hover:bg-[#DC2626] rounded-lg transition-all shadow-sm flex items-center gap-2"
-            >
-              <span className="material-symbols-outlined text-[18px]">
-                {isDeleting ? 'sync' : 'delete_forever'}
-              </span>
-              {isDeleting ? 'Deleting...' : 'Delete Everything'}
-            </button>
-          </>
-        }
-      >
-        <div className="flex flex-col gap-4">
-          <div className="p-4 bg-[#FEF2F2] border border-[#FEE2E2] rounded-lg flex gap-3">
-            <span className="material-symbols-outlined text-[#DC2626] flex-shrink-0">warning</span>
-            <p className="text-sm text-[#991B1B] leading-relaxed font-body">
-              Deleting your account will immediately remove all your <strong>templates</strong>, <strong>API keys</strong>, and <strong>email logs</strong>. This action is irreversible.
-            </p>
-          </div>
-          <p className="text-sm text-[#4B5563] font-body leading-relaxed">
-            Are you absolutely sure you want to proceed? You will be signed out instantly.
-          </p>
-        </div>
-      </Modal>
     </div>
   )
 }

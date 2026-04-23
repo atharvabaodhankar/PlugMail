@@ -9,6 +9,7 @@ import TemplatesPage from './pages/TemplatesPage'
 import PlaygroundPage from './pages/PlaygroundPage'
 import AnalyticsPage from './pages/AnalyticsPage'
 import DocsPage from './pages/DocsPage'
+import SettingsPage from './pages/SettingsPage'
 import LandingPage from './pages/LandingPage'
 
 /** Shows a full-screen spinner while Firebase resolves auth state on first load */
@@ -54,6 +55,7 @@ function App() {
         <Route path="/playground" element={<PlaygroundPage />} />
         <Route path="/analytics"  element={<AnalyticsPage />} />
         <Route path="/docs"       element={<DocsPage />} />
+        <Route path="/settings"   element={<SettingsPage />} />
       </Route>
 
       <Route path="*" element={<Navigate to="/dashboard" replace />} />
