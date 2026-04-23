@@ -1,15 +1,16 @@
+import { useState } from 'react'
 import { useAuth } from '../context/AuthContext'
 import Card, { CardHeader, CardBody } from '../components/ui/Card'
+import Modal from '../components/ui/Modal'
 import { LogOut, User, Shield, Bell } from 'lucide-react'
 
 export default function SettingsPage() {
   const { user, logout, getIdToken } = useAuth()
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
 
   const handleDeleteAccount = async () => {
-    if (!window.confirm('ARE YOU ABSOLUTELY SURE? \n\nThis will permanently delete:\n- All your email templates\n- All API keys\n- All email history\n- Your connected Gmail accounts\n\nThis action cannot be undone.')) {
-      return
-    }
-
+    setIsDeleting(true)
     try {
       const token = await getIdToken()
       const res = await fetch(`${import.meta.env.VITE_API_URL}/user`, {
@@ -20,16 +21,18 @@ export default function SettingsPage() {
       })
 
       if (res.ok) {
-        // Firebase Auth user is already deleted by backend
-        // We just need to clear local state
         await logout()
       } else {
         const data = await res.json()
         alert(data.error || 'Failed to delete account')
+        setIsDeleteModalOpen(false)
       }
     } catch (error) {
       console.error('Delete account error:', error)
       alert('An error occurred while deleting your account.')
+      setIsDeleteModalOpen(false)
+    } finally {
+      setIsDeleting(false)
     }
   }
 
@@ -137,7 +140,7 @@ export default function SettingsPage() {
                   <p className="text-xs text-[#6B7280] font-body">Permanently remove your account and all data.</p>
                 </div>
                 <button 
-                  onClick={handleDeleteAccount}
+                  onClick={() => setIsDeleteModalOpen(true)}
                   className="px-4 py-2 border border-[#FEE2E2] text-[#DC2626] rounded-lg text-xs font-bold hover:bg-[#FEF2F2] transition-all"
                 >
                   Delete
@@ -147,6 +150,45 @@ export default function SettingsPage() {
           </Card>
         </div>
       </div>
+
+      <Modal
+        open={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        title="Delete Account"
+        subtitle="This action is permanent and cannot be undone."
+        footer={
+          <>
+            <button 
+              onClick={() => setIsDeleteModalOpen(false)}
+              className="px-4 py-2 text-sm font-medium text-[#4B5563] hover:bg-[#F3F4F6] rounded-lg transition-all"
+            >
+              Cancel
+            </button>
+            <button 
+              onClick={handleDeleteAccount}
+              disabled={isDeleting}
+              className="px-4 py-2 text-sm font-bold text-white bg-[#EF4444] hover:bg-[#DC2626] rounded-lg transition-all shadow-sm flex items-center gap-2"
+            >
+              <span className="material-symbols-outlined text-[18px]">
+                {isDeleting ? 'sync' : 'delete_forever'}
+              </span>
+              {isDeleting ? 'Deleting...' : 'Delete Everything'}
+            </button>
+          </>
+        }
+      >
+        <div className="flex flex-col gap-4">
+          <div className="p-4 bg-[#FEF2F2] border border-[#FEE2E2] rounded-lg flex gap-3">
+            <span className="material-symbols-outlined text-[#DC2626] flex-shrink-0">warning</span>
+            <p className="text-sm text-[#991B1B] leading-relaxed font-body">
+              Deleting your account will immediately remove all your <strong>templates</strong>, <strong>API keys</strong>, and <strong>email logs</strong>. This action is irreversible.
+            </p>
+          </div>
+          <p className="text-sm text-[#4B5563] font-body leading-relaxed">
+            Are you absolutely sure you want to proceed? You will be signed out instantly.
+          </p>
+        </div>
+      </Modal>
     </div>
   )
 }
