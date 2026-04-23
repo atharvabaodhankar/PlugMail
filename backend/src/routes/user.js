@@ -86,4 +86,51 @@ router.delete('/', requireAuth, async (req, res) => {
   }
 });
 
+/**
+ * Get user settings
+ */
+router.get('/settings', requireAuth, async (req, res) => {
+  try {
+    const userRef = db.collection('users').doc(req.user.uid);
+    const doc = await userRef.get();
+    
+    if (!doc.exists) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    const data = doc.data();
+    res.json({
+      settings: data.settings || {
+        notifications: {
+          emailOnFailure: true,
+          weeklyReport: false,
+          securityAlerts: true
+        },
+        security: {
+          twoFactorAuth: false,
+          sessionTimeout: 60,
+          ipWhitelisting: false
+        }
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch settings' });
+  }
+});
+
+/**
+ * Update user settings
+ */
+router.patch('/settings', requireAuth, async (req, res) => {
+  try {
+    const userRef = db.collection('users').doc(req.user.uid);
+    await userRef.update({
+      settings: req.body.settings
+    });
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to update settings' });
+  }
+});
+
 module.exports = router;
