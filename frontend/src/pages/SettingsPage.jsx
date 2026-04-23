@@ -3,7 +3,35 @@ import Card, { CardHeader, CardBody } from '../components/ui/Card'
 import { LogOut, User, Shield, Bell } from 'lucide-react'
 
 export default function SettingsPage() {
-  const { user, logout } = useAuth()
+  const { user, logout, getIdToken } = useAuth()
+
+  const handleDeleteAccount = async () => {
+    if (!window.confirm('ARE YOU ABSOLUTELY SURE? \n\nThis will permanently delete:\n- All your email templates\n- All API keys\n- All email history\n- Your connected Gmail accounts\n\nThis action cannot be undone.')) {
+      return
+    }
+
+    try {
+      const token = await getIdToken()
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/user`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+
+      if (res.ok) {
+        // Firebase Auth user is already deleted by backend
+        // We just need to clear local state
+        await logout()
+      } else {
+        const data = await res.json()
+        alert(data.error || 'Failed to delete account')
+      }
+    } catch (error) {
+      console.error('Delete account error:', error)
+      alert('An error occurred while deleting your account.')
+    }
+  }
 
   return (
     <div className="flex flex-col gap-8 animate-reveal pb-10">
@@ -108,7 +136,10 @@ export default function SettingsPage() {
                   <h4 className="text-sm font-semibold text-[#111827]">Delete Account</h4>
                   <p className="text-xs text-[#6B7280] font-body">Permanently remove your account and all data.</p>
                 </div>
-                <button className="px-4 py-2 border border-[#FEE2E2] text-[#DC2626] rounded-lg text-xs font-bold hover:bg-[#FEF2F2] transition-all">
+                <button 
+                  onClick={handleDeleteAccount}
+                  className="px-4 py-2 border border-[#FEE2E2] text-[#DC2626] rounded-lg text-xs font-bold hover:bg-[#FEF2F2] transition-all"
+                >
                   Delete
                 </button>
               </div>
