@@ -168,13 +168,16 @@ export default function ApiKeysPage() {
                     {k.maskedKey || 'pk_live_••••••••••••••••'}
                   </code>
                   <button className="text-[#9CA3AF] hover:text-[#6B7280] transition-colors"
-                    onClick={() => copyKey(k.maskedKey, k.id)}>
+                    onClick={() => copyKey(k.key || k.maskedKey, k.id)}>
                     <span className="material-symbols-outlined text-[16px]">
                       {copiedId === k.id ? 'check' : 'content_copy'}
                     </span>
                   </button>
                 </div>
                 <Badge status={k.active ? 'active' : 'revoked'} />
+                {k.active && !k.key && (
+                  <span className="text-[10px] font-bold text-[#9CA3AF] uppercase tracking-wider ml-1">Legacy</span>
+                )}
                 {k.active && (
                   <button className="text-[#9CA3AF] hover:text-[#DC2626] transition-colors"
                     onClick={() => revokeKey(k.id)} title="Revoke Key">

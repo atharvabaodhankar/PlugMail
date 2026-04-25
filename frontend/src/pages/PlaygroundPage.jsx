@@ -34,7 +34,7 @@ export default function PlaygroundPage() {
           const ks = await keysRes.json()
           const activeKeys = ks.filter(k => k.active)
           setKeys(activeKeys)
-          if (activeKeys.length > 0) setSelectedKey(activeKeys[0].maskedKey)
+          if (activeKeys.length > 0) setSelectedKey(activeKeys[0].key) // Use real key for snippets
         }
 
         // Fetch Templates
@@ -151,11 +151,19 @@ export default function PlaygroundPage() {
                 >
                   <option value="" disabled>-- Select an API Key --</option>
                   {keys.map(k => (
-                    <option key={k.id} value={k.maskedKey}>{k.name} ({k.maskedKey})</option>
+                    <option key={k.id} value={k.key || ''}>
+                      {k.name} {k.key ? `(${k.maskedKey})` : `(Legacy - Masked)`}
+                    </option>
                   ))}
                 </select>
+                {!selectedKey && keys.length > 0 && (
+                  <p className="text-[11px] text-[#F59E0B] font-medium flex items-center gap-1">
+                    <span className="material-symbols-outlined text-[14px]">info</span>
+                    Legacy key selected. Create a new key to see it unmasked in snippets.
+                  </p>
+                )}
                 <p className="text-[11px] text-[#6B7280]">
-                  Select an active key to update the code snippets below. The playground will automatically authorize your test send using your current session.
+                  Select an active key to update the code snippets below.
                 </p>
               </div>
 
@@ -206,7 +214,7 @@ export default function PlaygroundPage() {
             <CardHeader title="Code Snippets" subtitle="How to integrate in your app" />
             <div className="p-6 h-[400px]">
               <CodeSnippets 
-                apiKey={selectedKey} 
+                apiKey={selectedKey || 'pk_live_YOUR_API_KEY'} 
                 toEmail={toEmail} 
                 templateName={selectedTemplate} 
                 variablesText={variablesText} 

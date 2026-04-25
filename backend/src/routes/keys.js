@@ -3,6 +3,7 @@ const crypto = require('crypto');
 const { v4: uuidv4 } = require('uuid');
 const { db } = require('../firebase');
 const { requireAuth } = require('../middleware/auth');
+const { encrypt, decrypt } = require('../utils/crypto');
 const { sendSystemNotification } = require('../utils/notifications');
 
 const router = express.Router();
@@ -20,10 +21,14 @@ router.get('/', requireAuth, async (req, res) => {
 
     const keys = snapshot.docs.map(doc => {
       const data = doc.data();
+      // Decrypt the key so it's usable in the dashboard (Playground/Copy)
+      const fullKey = data.encryptedKey ? decrypt(data.encryptedKey) : null;
+      
       return {
         id: doc.id,
         name: data.name,
-        maskedKey: data.maskedKey, // e.g. pk_live_abcd••••••••wxyz
+        key: fullKey,
+        maskedKey: data.maskedKey,
         active: data.active,
         createdAt: data.createdAt,
       };
@@ -48,8 +53,11 @@ router.post('/', requireAuth, async (req, res) => {
     // Generate raw key: pk_live_ + 32 random hex chars
     const rawKey = 'pk_live_' + crypto.randomBytes(16).toString('hex');
     
-    // Hash key for secure storage
+    // Hash key for lookup (fast authentication)
     const hashedKey = crypto.createHash('sha256').update(rawKey).digest('hex');
+    
+    // Encrypt key for secure retrieval (Playground/Copy)
+    const encryptedKey = encrypt(rawKey);
     
     // Create masked version for UI
     const maskedKey = rawKey.slice(0, 12) + '••••••••' + rawKey.slice(-4);
@@ -58,6 +66,7 @@ router.post('/', requireAuth, async (req, res) => {
       userId: req.user.uid,
       name,
       hashedKey,
+      encryptedKey,
       maskedKey,
       active: true,
       createdAt: new Date().toISOString()
