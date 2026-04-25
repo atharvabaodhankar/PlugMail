@@ -5,6 +5,7 @@ const { requireApiKey } = require('../middleware/apiKeyAuth');
 const { requireAuth } = require('../middleware/auth');
 const { decrypt } = require('../utils/crypto');
 const { createTransporter, sendMail } = require('../utils/mailer');
+const { sendSystemNotification } = require('../utils/notifications');
 
 const router = express.Router();
 
@@ -93,6 +94,23 @@ async function handleSend(req, res, userId) {
     if (result.success) {
       res.json({ success: true, messageId: result.messageId });
     } else {
+      // Send Failure Notification (if enabled)
+      try {
+        const userDoc = await db.collection('users').doc(userId).get();
+        const userData = userDoc.data();
+        if (userData?.settings?.notifications?.emailOnFailure !== false) {
+          await sendSystemNotification(
+            userData.email,
+            'Delivery Failure Alert',
+            `<p>An email attempt to <strong>${to}</strong> using template <strong>"${templateName}"</strong> just failed.</p>
+             <p style="color: #EF4444;"><strong>Error:</strong> ${result.error || 'Unknown Error'}</p>
+             <p>Check your logs in the PlugMail dashboard for more details.</p>`
+          );
+        }
+      } catch (notifyError) {
+        console.error('Failed to send failure notification:', notifyError);
+      }
+
       res.status(500).json({ success: false, error: 'Email delivery failed', details: result.error });
     }
   } catch (error) {
