@@ -3,6 +3,7 @@ const crypto = require('crypto');
 const { v4: uuidv4 } = require('uuid');
 const { db } = require('../firebase');
 const { requireAuth } = require('../middleware/auth');
+const { sendSystemNotification } = require('../utils/notifications');
 
 const router = express.Router();
 
@@ -63,6 +64,23 @@ router.post('/', requireAuth, async (req, res) => {
     };
 
     const docRef = await db.collection('apiKeys').add(newKey);
+
+    // Send Security Notification (if enabled)
+    try {
+      const userDoc = await db.collection('users').doc(req.user.uid).get();
+      const userData = userDoc.data();
+      if (userData?.settings?.notifications?.securityAlerts !== false) {
+        await sendSystemNotification(
+          req.user.email,
+          'Security Alert: New API Key Created',
+          `<p>A new API key named <strong>"${name}"</strong> was just created for your PlugMail account.</p>
+           <p><strong>Masked Key:</strong> ${maskedKey}</p>
+           <p>If you did not perform this action, please revoke the key immediately from your dashboard settings.</p>`
+        );
+      }
+    } catch (notifyError) {
+      console.error('Failed to send key creation notification:', notifyError);
+    }
 
     // ONLY return the raw key once upon creation
     res.json({
