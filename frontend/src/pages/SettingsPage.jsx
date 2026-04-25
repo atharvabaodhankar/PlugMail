@@ -127,7 +127,6 @@ export default function SettingsPage() {
         <div className="lg:col-span-1 flex flex-col gap-2">
           {[
             { id: 'profile', label: 'Profile', icon: User },
-            { id: 'security', label: 'Security', icon: Shield },
             { id: 'notifications', label: 'Notifications', icon: Bell },
           ].map((item) => (
             <button
@@ -231,40 +230,6 @@ export default function SettingsPage() {
             </>
           )}
 
-          {activeTab === 'security' && (
-            <Card>
-              <CardHeader title="Security Settings" subtitle="Keep your account safe" />
-              <CardBody className="divide-y divide-[#F3F4F6]">
-                <Toggle 
-                  label="Two-Factor Authentication" 
-                  description="Add an extra layer of security to your account."
-                  enabled={settings.security.twoFactorAuth}
-                  onChange={() => toggleSetting('security', 'twoFactorAuth')}
-                />
-                <Toggle 
-                  label="IP Whitelisting" 
-                  description="Only allow API requests from approved IP addresses."
-                  enabled={settings.security.ipWhitelisting}
-                  onChange={() => toggleSetting('security', 'ipWhitelisting')}
-                />
-                <div className="py-4 flex items-center justify-between">
-                   <div className="flex flex-col gap-0.5">
-                    <span className="text-sm font-semibold text-[#111827]">Session Timeout</span>
-                    <span className="text-xs text-[#6B7280] font-body">Automatically log out after inactivity.</span>
-                  </div>
-                  <select 
-                    value={settings.security.sessionTimeout}
-                    onChange={(e) => setSettings({...settings, security: {...settings.security, sessionTimeout: parseInt(e.target.value)}})}
-                    className="bg-[#F9FAFB] border border-[#E5E7EB] rounded-lg text-xs font-medium px-2 py-1 outline-none"
-                  >
-                    <option value={30}>30 mins</option>
-                    <option value={60}>1 hour</option>
-                    <option value={120}>2 hours</option>
-                  </select>
-                </div>
-              </CardBody>
-            </Card>
-          )}
 
           {activeTab === 'notifications' && (
             <Card>
