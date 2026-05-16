@@ -37,14 +37,14 @@ app.get('/health', (req, res) => {
 });
 
 // Dashboard Routes (restricted CORS — only plugmail.me + localhost)
-app.use('/api/user', dashboardCors, require('./src/routes/user'));
-app.use('/api/keys', dashboardCors, require('./src/routes/keys'));
-app.use('/api/accounts', dashboardCors, require('./src/routes/accounts'));
-app.use('/api/templates', dashboardCors, require('./src/routes/templates'));
-app.use('/api/analytics', dashboardCors, require('./src/routes/analytics'));
+app.use('/user', dashboardCors, require('./src/routes/user'));
+app.use('/keys', dashboardCors, require('./src/routes/keys'));
+app.use('/accounts', dashboardCors, require('./src/routes/accounts'));
+app.use('/templates', dashboardCors, require('./src/routes/templates'));
+app.use('/analytics', dashboardCors, require('./src/routes/analytics'));
 
 // Public API Routes (open CORS — clients can call from anywhere)
-app.use('/api/send', publicCors, require('./src/routes/send'));
+app.use('/send', publicCors, require('./src/routes/send'));
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
