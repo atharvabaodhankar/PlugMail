@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { API_URL } from '../lib/api'
 import { useAuth } from '../context/AuthContext'
 import Card, { CardHeader } from '../components/ui/Card'
 import EmptyState from '../components/ui/EmptyState'
@@ -18,7 +19,7 @@ export default function AnalyticsPage() {
     const fetchAnalytics = async () => {
       try {
         const token = await getIdToken()
-        const res = await fetch(`${import.meta.env.VITE_API_URL}/analytics`, {
+        const res = await fetch(`${API_URL}/analytics`, {
           headers: { 'Authorization': `Bearer ${token}` }
         })
         if (!res.ok) throw new Error('Failed to fetch analytics')

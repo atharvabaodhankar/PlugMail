@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState } from 'react'
 import { onAuthStateChanged, signInWithPopup, signOut } from 'firebase/auth'
 import { auth, provider } from '../lib/firebase'
+import { API_URL } from '../lib/api'
 
 const AuthContext = createContext(null)
 
@@ -23,7 +24,7 @@ export function AuthProvider({ children }) {
       const result = await signInWithPopup(auth, provider)
       // Sync user to backend
       const token = await result.user.getIdToken()
-      await fetch(`${import.meta.env.VITE_API_URL}/user/sync`, {
+      await fetch(`${API_URL}/user/sync`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
