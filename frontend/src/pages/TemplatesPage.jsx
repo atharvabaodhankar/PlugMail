@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { API_URL } from '../lib/api'
 import { useAuth } from '../context/AuthContext'
 import Card from '../components/ui/Card'
 import Input from '../components/ui/Input'
@@ -21,7 +22,7 @@ export default function TemplatesPage() {
   const fetchTemplates = async () => {
     try {
       const token = await getIdToken()
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/templates`, {
+      const res = await fetch(`${API_URL}/templates`, {
         headers: { 'Authorization': `Bearer ${token}` }
       })
       if (!res.ok) throw new Error('Failed to fetch templates')
@@ -45,7 +46,7 @@ export default function TemplatesPage() {
       const token = await getIdToken();
       let newTemplates = [];
       for (const tpl of defaultTemplates) {
-        const res = await fetch(`${import.meta.env.VITE_API_URL}/templates`, {
+        const res = await fetch(`${API_URL}/templates`, {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -75,8 +76,8 @@ export default function TemplatesPage() {
       const token = await getIdToken()
       const isNew = !editingTemplate.id
       const url = isNew 
-        ? `${import.meta.env.VITE_API_URL}/templates` 
-        : `${import.meta.env.VITE_API_URL}/templates/${editingTemplate.id}`
+        ? `${API_URL}/templates` 
+        : `${API_URL}/templates/${editingTemplate.id}`
         
       const res = await fetch(url, {
         method: isNew ? 'POST' : 'PUT',
@@ -112,7 +113,7 @@ export default function TemplatesPage() {
     
     try {
       const token = await getIdToken()
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/templates/${id}`, {
+      const res = await fetch(`${API_URL}/templates/${id}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
       })

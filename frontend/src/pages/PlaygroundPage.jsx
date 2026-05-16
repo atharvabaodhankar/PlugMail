@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { API_URL } from '../lib/api'
 import { useAuth } from '../context/AuthContext'
 import Card, { CardHeader } from '../components/ui/Card'
 import Input from '../components/ui/Input'
@@ -29,7 +30,7 @@ export default function PlaygroundPage() {
         const headers = { 'Authorization': `Bearer ${token}` }
 
         // Fetch Keys
-        const keysRes = await fetch(`${import.meta.env.VITE_API_URL}/keys`, { headers })
+        const keysRes = await fetch(`${API_URL}/keys`, { headers })
         if (keysRes.ok) {
           const ks = await keysRes.json()
           const activeKeys = ks.filter(k => k.active)
@@ -38,7 +39,7 @@ export default function PlaygroundPage() {
         }
 
         // Fetch Templates
-        const tplRes = await fetch(`${import.meta.env.VITE_API_URL}/templates`, { headers })
+        const tplRes = await fetch(`${API_URL}/templates`, { headers })
         if (tplRes.ok) {
           const ts = await tplRes.json()
           setTemplates(ts)
@@ -46,7 +47,7 @@ export default function PlaygroundPage() {
         }
 
         // Fetch Accounts (just to warn if none)
-        const accRes = await fetch(`${import.meta.env.VITE_API_URL}/accounts`, { headers })
+        const accRes = await fetch(`${API_URL}/accounts`, { headers })
         if (accRes.ok) {
           setAccounts(await accRes.json())
         }
@@ -72,7 +73,7 @@ export default function PlaygroundPage() {
     setLoading(true)
     try {
       const token = await getIdToken()
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/send/test`, {
+      const res = await fetch(`${API_URL}/send/test`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

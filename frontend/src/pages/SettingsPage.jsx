@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { API_URL } from '../lib/api'
 import { useAuth } from '../context/AuthContext'
 import Card, { CardHeader, CardBody } from '../components/ui/Card'
 import Modal from '../components/ui/Modal'
@@ -43,7 +44,7 @@ export default function SettingsPage() {
   const fetchSettings = async () => {
     try {
       const token = await getIdToken()
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/user/settings`, {
+      const res = await fetch(`${API_URL}/user/settings`, {
         headers: { 'Authorization': `Bearer ${token}` }
       })
       if (res.ok) {
@@ -71,7 +72,7 @@ export default function SettingsPage() {
 
     try {
       const token = await getIdToken()
-      await fetch(`${import.meta.env.VITE_API_URL}/user/settings`, {
+      await fetch(`${API_URL}/user/settings`, {
         method: 'PATCH',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -90,7 +91,7 @@ export default function SettingsPage() {
     setIsDeleting(true)
     try {
       const token = await getIdToken()
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/user`, {
+      const res = await fetch(`${API_URL}/user`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`
