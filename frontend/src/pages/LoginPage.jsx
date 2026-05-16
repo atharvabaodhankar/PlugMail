@@ -1,11 +1,12 @@
 import React from 'react'
+import { API_URL } from '../lib/api'
 import { motion } from 'framer-motion'
 import { useAuth } from '../context/AuthContext'
 import { CheckCircle2, ArrowRight } from 'lucide-react'
 
 export default function LoginPage() {
   const { signInWithGoogle, error } = useAuth()
-  const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001/api'
+  const baseUrl = API_URL
 
   const sampleCode = `const response = await fetch("${baseUrl}/send", {
   method: "POST",

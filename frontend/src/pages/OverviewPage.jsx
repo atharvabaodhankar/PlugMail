@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { API_URL } from '../lib/api'
 import { useAuth } from '../context/AuthContext'
 import StatCard from '../components/ui/StatCard'
 import Badge from '../components/ui/Badge'
@@ -16,7 +17,7 @@ function getHour() {
 export default function OverviewPage() {
   const { user, getIdToken } = useAuth()
   const today = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })
-  const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001/api'
+  const baseUrl = API_URL
   
   const [stats, setStats] = useState(null)
   const [loading, setLoading] = useState(true)
