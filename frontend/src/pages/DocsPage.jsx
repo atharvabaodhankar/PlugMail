@@ -1,8 +1,9 @@
 import Card, { CardHeader, CardBody } from '../components/ui/Card'
 import CodeBlock from '../components/ui/CodeBlock'
+import { API_URL } from '../lib/api'
 
 export default function DocsPage() {
-  const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001/api'
+  const baseUrl = API_URL
 
   return (
     <div className="flex flex-col gap-10 animate-reveal pb-20">

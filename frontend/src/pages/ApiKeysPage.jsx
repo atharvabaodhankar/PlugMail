@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { API_URL } from '../lib/api'
 import { useAuth } from '../context/AuthContext'
 import Card, { CardHeader } from '../components/ui/Card'
 import Badge from '../components/ui/Badge'
@@ -20,7 +21,7 @@ export default function ApiKeysPage() {
   const fetchKeys = async () => {
     try {
       const token = await getIdToken()
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/keys`, {
+      const res = await fetch(`${API_URL}/keys`, {
         headers: { 'Authorization': `Bearer ${token}` }
       })
       if (!res.ok) throw new Error('Failed to fetch keys')
@@ -42,7 +43,7 @@ export default function ApiKeysPage() {
     if (!keyName.trim()) return
     try {
       const token = await getIdToken()
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/keys`, {
+      const res = await fetch(`${API_URL}/keys`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -68,7 +69,7 @@ export default function ApiKeysPage() {
   const revokeKey = async (id) => {
     try {
       const token = await getIdToken()
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/keys/${id}`, {
+      const res = await fetch(`${API_URL}/keys/${id}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
       })
