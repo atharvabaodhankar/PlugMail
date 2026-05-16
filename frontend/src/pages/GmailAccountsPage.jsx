@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { API_URL } from '../lib/api'
 import { useAuth } from '../context/AuthContext'
 import Card, { CardHeader } from '../components/ui/Card'
 import Badge from '../components/ui/Badge'
@@ -19,7 +20,7 @@ export default function GmailAccountsPage() {
   const fetchAccounts = async () => {
     try {
       const token = await getIdToken()
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/accounts`, {
+      const res = await fetch(`${API_URL}/accounts`, {
         headers: { 'Authorization': `Bearer ${token}` }
       })
       if (!res.ok) throw new Error('Failed to fetch accounts')
@@ -42,7 +43,7 @@ export default function GmailAccountsPage() {
     setIsSubmitting(true)
     try {
       const token = await getIdToken()
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/accounts`, {
+      const res = await fetch(`${API_URL}/accounts`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -68,7 +69,7 @@ export default function GmailAccountsPage() {
   const removeAccount = async (id) => {
     try {
       const token = await getIdToken()
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/accounts/${id}`, {
+      const res = await fetch(`${API_URL}/accounts/${id}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
       })

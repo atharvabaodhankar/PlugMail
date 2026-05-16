@@ -3,6 +3,7 @@ import { motion, useScroll, useTransform } from 'framer-motion'
 import { Link } from 'react-router-dom'
 import { Terminal, Zap, LayoutTemplate, BarChart3, Globe, Shield, ArrowRight, CheckCircle2, Copy, Mail, Key, UserPlus, RefreshCw, Bell } from 'lucide-react'
 import Lenis from 'lenis'
+import { API_URL } from '../lib/api'
 
 // --- CONSTANTS & DATA ---
 const NAV_LINKS = [
@@ -186,7 +187,7 @@ const HeroSection = () => {
 
 const AnimatedCodeSection = () => {
   const [copied, setCopied] = useState(false)
-  const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001/api'
+  const baseUrl = API_URL
   const code = `const response = await fetch("${baseUrl}/send", {
   method: "POST",
   headers: {
