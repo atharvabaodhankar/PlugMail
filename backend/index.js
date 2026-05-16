@@ -52,6 +52,12 @@ app.use('/analytics', dashboardCors, require('./src/routes/analytics'));
 // Public API Routes (open CORS — clients can call from anywhere)
 app.use('/send', publicCors, require('./src/routes/send'));
 
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+// Only listen to port if not in Vercel serverless environment
+if (process.env.NODE_ENV !== 'production' || process.env.RENDER) {
+  app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+  });
+}
+
+// Export for Vercel Serverless
+module.exports = app;
