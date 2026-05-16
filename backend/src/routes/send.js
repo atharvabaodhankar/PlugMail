@@ -97,8 +97,8 @@ async function handleSend(req, res, userId) {
       // Send Failure Notification (if enabled)
       try {
         const userDoc = await db.collection('users').doc(userId).get();
-        const userData = userDoc.data();
-        if (userData?.settings?.notifications?.emailOnFailure !== false) {
+        const userData = userDoc.exists ? userDoc.data() : null;
+        if (userData?.email && userData?.settings?.notifications?.emailOnFailure !== false) {
           await sendSystemNotification(
             userData.email,
             'Delivery Failure Alert',
