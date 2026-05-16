@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { API_URL } from '../../lib/api'
 
 export default function CodeSnippets({ 
   apiKey = 'pk_live_YOUR_KEY', 
@@ -7,7 +8,7 @@ export default function CodeSnippets({
   variablesText = '{\n  "name": "Developer"\n}' 
 }) {
   const [activeLang, setActiveLang] = useState('Node.js')
-  const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001/api'
+  const baseUrl = API_URL
   const apiUrl = `${baseUrl}/send`
 
   const langs = ['Node.js', 'cURL', 'Python', 'Go', 'PHP']
