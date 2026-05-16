@@ -7,19 +7,21 @@ const rateLimit = require('express-rate-limit');
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// Middleware
-app.use(helmet());
+// CORS — strict for dashboard, open for public API
 const allowedOrigins = (process.env.FRONTEND_URL || 'http://localhost:5173')
   .split(',')
   .map(o => o.trim());
-app.use(cors({
+
+const dashboardCors = cors({
   origin: (origin, cb) => {
-    // Allow requests with no origin (mobile apps, curl, etc.)
     if (!origin || allowedOrigins.includes(origin)) return cb(null, true);
     cb(new Error('Not allowed by CORS'));
   },
   credentials: true
-}));
+});
+
+const publicCors = cors(); // Allows all origins — for client API usage
+
 app.use(express.json());
 
 // Rate Limiting
@@ -34,13 +36,15 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok', message: 'PlugMail API is running' });
 });
 
-// API Routes
-app.use('/api/user', require('./src/routes/user'));
-app.use('/api/keys', require('./src/routes/keys'));
-app.use('/api/accounts', require('./src/routes/accounts'));
-app.use('/api/templates', require('./src/routes/templates'));
-app.use('/api/analytics', require('./src/routes/analytics'));
-app.use('/api/send', require('./src/routes/send'));
+// Dashboard Routes (restricted CORS — only plugmail.me + localhost)
+app.use('/api/user', dashboardCors, require('./src/routes/user'));
+app.use('/api/keys', dashboardCors, require('./src/routes/keys'));
+app.use('/api/accounts', dashboardCors, require('./src/routes/accounts'));
+app.use('/api/templates', dashboardCors, require('./src/routes/templates'));
+app.use('/api/analytics', dashboardCors, require('./src/routes/analytics'));
+
+// Public API Routes (open CORS — clients can call from anywhere)
+app.use('/api/send', publicCors, require('./src/routes/send'));
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
