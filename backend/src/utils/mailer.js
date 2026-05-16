@@ -8,7 +8,10 @@ const nodemailer = require('nodemailer');
  */
 const createTransporter = (email, appPassword) => {
   return nodemailer.createTransport({
-    service: 'gmail',
+    host: 'smtp.gmail.com',
+    port: 465,
+    secure: true,
+    family: 4, // Force IPv4 — prevents ENETUNREACH on IPv6-limited hosts
     auth: {
       user: email,
       pass: appPassword,
